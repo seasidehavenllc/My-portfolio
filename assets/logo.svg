@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="160 190 390 430" fill="none" stroke="#FFFFFF">
+  <title>Seaside Haven</title>
+  <path d="M192 476 V343 L355 228 L518 343 V478" stroke-width="24" stroke-linejoin="miter"/>
+  <path d="M356 292 L276 362 L352 428 V490" stroke-width="26" stroke-linejoin="miter"/>
+  <path d="M428 374 V484" stroke-width="24"/>
+  <path d="M180 537 C 240 492, 300 482, 358 502 S 470 544, 531 508" stroke-width="30"/>
+  <path d="M180 594 C 240 549, 300 539, 358 559 S 470 601, 531 565" stroke-width="30"/>
+</svg>
