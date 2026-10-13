@@ -450,7 +450,7 @@ footer h4{font-size:.92rem;font-weight:500;color:var(--white);margin-bottom:16px
 footer ul{list-style:none;display:grid;gap:10px;font-size:.93rem}
 footer a{text-decoration:none}
 footer a:hover{color:var(--white)}
-.f-big{font-size:clamp(3.4rem,15vw,11.5rem);font-weight:800;letter-spacing:-.05em;line-height:.8;margin-top:40px;margin-bottom:-.18em;background:linear-gradient(180deg,rgba(46,197,224,.42),rgba(20,148,184,.08) 85%);-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap;user-select:none}
+.f-big{display:block;width:100%;text-align:center;font-size:17.4vw;font-weight:800;letter-spacing:-.055em;line-height:.78;margin-top:28px;margin-bottom:-.06em;white-space:nowrap;user-select:none;background:linear-gradient(180deg,#2EC5E0 0%,#1494B8 45%,#0B4A5C 100%);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:.55;-webkit-mask-image:linear-gradient(180deg,#000 15%,transparent 92%);mask-image:linear-gradient(180deg,#000 15%,transparent 92%)}
 .f-bottom{margin-top:56px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:.88rem;color:var(--muted)}
 
 /* ---------- multi-page additions ---------- */

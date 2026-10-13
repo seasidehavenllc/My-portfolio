@@ -133,3 +133,18 @@ document.getElementById("form")?.addEventListener("submit", e => {
     msg.textContent = day && slot ? "Booked for " + day.dataset.label + " at " + slot.textContent + ". Confirmation sent." : "Choose a day and a time first.";
   });
 })();
+
+/* footer wordmark: scale so it spans the full width */
+(() => {
+  const el = document.querySelector(".f-big");
+  if (!el) return;
+  const fit = () => {
+    el.style.fontSize = "100px";
+    const r = document.createRange(); r.selectNodeContents(el);
+    const w = r.getBoundingClientRect().width;
+    if (w) el.style.fontSize = (100 * el.clientWidth * 0.97 / w) + "px";
+  };
+  fit();
+  addEventListener("resize", fit);
+  if (document.fonts) document.fonts.ready.then(fit);
+})();
