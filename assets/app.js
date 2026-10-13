@@ -1,6 +1,6 @@
 /* ======================= CONFIG — edit these ======================= */
 const CONFIG = {
-  email: "hello@seasidehavenstudios.com",   // your studio email
+  email: "info@seasidehavenllc.com",   // your studio email
   phone: "(434) 233-0231"                   // your studio phone
 };
 /* =================================================================== */
