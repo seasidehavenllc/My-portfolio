@@ -35,6 +35,16 @@ function toast(text) {
   $$("a", mm).forEach(a => a.addEventListener("click", () => { mm.classList.remove("open"); mb.setAttribute("aria-expanded", false); }));
 })();
 
+/* services dropdown: opens on hover (mouse) and click/keyboard (everyone) */
+$$(".dd").forEach(dd => {
+  const btn = $(".dd-btn", dd), set = o => { dd.classList.toggle("open", o); btn.setAttribute("aria-expanded", o); };
+  btn.addEventListener("click", () => set(!dd.classList.contains("open")));
+  if (matchMedia("(hover: hover)").matches) { dd.addEventListener("mouseenter", () => set(true)); dd.addEventListener("mouseleave", () => set(false)); }
+  dd.addEventListener("keydown", e => { if (e.key === "Escape") { set(false); btn.focus(); } });
+  document.addEventListener("click", e => { if (!dd.contains(e.target)) set(false); });
+  dd.addEventListener("focusout", e => { if (!dd.contains(e.relatedTarget)) set(false); });
+});
+
 /* reveal on scroll */
 (() => {
   const els = $$(".rv");
@@ -71,8 +81,8 @@ $$(".spot").forEach(el => el.addEventListener("pointermove", e => {
 
 /* ---------- scaled template rendering ---------- */
 const DEVICES = { desktop: 1280, tablet: 820, phone: 390 };
-function mountScaled(box, t, pal = 0, width = 1280, fill = false) {
-  box.innerHTML = `<div class="scale" style="width:${width}px">${tpRender(t, pal)}</div>`;
+function mountScaled(box, t, pal = 0, width = 1280, fill = false, pg = 0) {
+  box.innerHTML = `<div class="scale" style="width:${width}px">${tpRender(t, pal, pg)}</div>`;
   const sc = box.firstElementChild, tp = sc.firstElementChild;
   const fit = () => {
     const s = box.clientWidth / width;
@@ -84,6 +94,16 @@ function mountScaled(box, t, pal = 0, width = 1280, fill = false) {
   if (!box._ro && "ResizeObserver" in window) { box._ro = new ResizeObserver(() => box._fit && box._fit()); box._ro.observe(box); }
   box._fit = fit;
   if (document.fonts) document.fonts.ready.then(fit);
+}
+/* make a mounted template clickable: its menu, buttons and footer links switch pages */
+function liveNav(box, onPage, scroller) {
+  if (box._live) return; box._live = true;
+  box.addEventListener("click", e => {
+    const burger = e.target.closest("[data-burger]");
+    if (burger) { burger.closest(".tp").classList.toggle("menu-open"); box._fit && box._fit(); return; }
+    const a = e.target.closest("[data-pg]");
+    if (a) { e.preventDefault(); onPage(+a.dataset.pg); (scroller || box).scrollTop = 0; }
+  });
 }
 const tplById = id => typeof TEMPLATES !== "undefined" && TEMPLATES.find(t => t.id === id);
 
@@ -107,7 +127,7 @@ function cardHTML(t) {
     <div class="mbar"><i></i><i></i><i></i></div>
     <div class="thumb" data-tid="${t.id}"></div>
     <div class="meta"><div class="top"><h3>${t.name}</h3><span class="chip">${t.industry}</span></div><p>${t.blurb}</p>
-    <div class="sw">${t.pal.map(q => `<i style="background:linear-gradient(135deg,${q.bg} 50%,${q.ac} 50%)"></i>`).join("")}<span class="view">Live preview →</span></div></div>
+    <div class="sw">${t.pal.map(q => `<i style="background:linear-gradient(135deg,${q.bg} 50%,${q.ac} 50%)"></i>`).join("")}<span class="view">5-page live preview →</span></div></div>
   </button>`;
 }
 function fillGrid(grid, list) {
@@ -150,6 +170,7 @@ function openPreview(id) {
         <div><h3 id="pvName"></h3><small id="pvInd"></small></div>
         <div class="seg" role="group" aria-label="Device">${Object.keys(DEVICES).map((d, i) => `<button type="button" data-dev="${d}" aria-pressed="${i === 0}">${d[0].toUpperCase() + d.slice(1)}</button>`).join("")}</div>
         <div class="pals" role="group" aria-label="Color palette" id="pvPals"></div>
+        <label class="pv-page">Page <select id="pvPage"></select></label>
         <div class="pv-x"><a class="btn btn-grad btn-sm" id="pvGo" href="contact.html">Start with this template</a><button class="icon-btn" type="button" id="pvClose" aria-label="Close preview"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       </div>
       <div class="pv-stage"><div class="pv-device" id="pvDev"></div></div>
@@ -157,21 +178,25 @@ function openPreview(id) {
     dlg = $("#pv");
     $("#pvClose").addEventListener("click", () => dlg.close());
     dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
-    $$("[data-dev]", dlg).forEach(b => b.addEventListener("click", () => { dlg._dev = b.dataset.dev; $$("[data-dev]", dlg).forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); }));
-    addEventListener("resize", () => dlg.open && draw());
+    $$("[data-dev]", dlg).forEach(b => b.addEventListener("click", () => { dlg._dev = b.dataset.dev; $$("[data-dev]", dlg).forEach(x => x.setAttribute("aria-pressed", x === b)); dlg._draw(); }));
+    addEventListener("resize", () => dlg.open && dlg._draw());
+    const go = n => { dlg._pg = n; $("#pvPage").value = n; dlg._draw(); };
+    $("#pvPage").addEventListener("change", e => go(+e.target.value));
+    liveNav($("#pvDev"), go, $(".pv-stage", dlg));
   }
-  const t = tplById(id); dlg._t = t; dlg._pal = 0; dlg._dev = dlg._dev || "desktop";
+  const t = tplById(id); dlg._t = t; dlg._pal = 0; dlg._pg = 0; dlg._dev = dlg._dev || "desktop";
+  $("#pvPage").innerHTML = ["Home", ...t.nav].map((n, i) => `<option value="${i}">${n}</option>`).join("");
   $("#pvName").textContent = t.name + " template";
   $("#pvInd").textContent = t.industry + " · included in Launch, from $799";
   const pals = $("#pvPals");
   pals.innerHTML = t.pal.map((q, i) => `<button type="button" aria-label="Palette ${i + 1}" aria-pressed="${i === 0}" style="background:linear-gradient(135deg,${q.bg} 50%,${q.ac} 50%)"></button>`).join("");
-  $$("button", pals).forEach((b, i) => b.addEventListener("click", () => { dlg._pal = i; $$("button", pals).forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); }));
+  $$("button", pals).forEach((b, i) => b.addEventListener("click", () => { dlg._pal = i; $$("button", pals).forEach(x => x.setAttribute("aria-pressed", x === b)); dlg._draw(); }));
   function draw() {
     const dev = $("#pvDev"), stage = $(".pv-stage", dlg), w = DEVICES[dlg._dev];
     dev.className = "pv-device " + dlg._dev;
     const avail = stage.clientWidth - 48;
     dev.style.width = Math.min(avail, dlg._dev === "desktop" ? avail : dlg._dev === "tablet" ? 600 : 330) + "px";
-    mountScaled(dev, dlg._t, dlg._pal, w, true);
+    mountScaled(dev, dlg._t, dlg._pal, w, true, dlg._pg);
     $("#pvGo").href = `contact.html?template=${dlg._t.id}&palette=${dlg._pal + 1}`;
   }
   dlg._draw = draw;
@@ -183,7 +208,9 @@ function openPreview(id) {
 (() => {
   const lab = $("#lab"); if (!lab) return;
   const frame = $("#labFrame"), box = $("#labBox");
-  const st = { vibe: "harbor", pal: 0, accent: null, r: null, font: null, dev: "desktop" };
+  const st = { vibe: "harbor", pal: 0, accent: null, r: null, font: null, dev: "desktop", pg: 0 };
+  box.classList.add("live");
+  liveNav(box, n => { st.pg = n; draw(); });
   function draw() {
     const t = Object.assign({}, tplById(st.vibe));
     t.pal = t.pal.map(p => Object.assign({}, p));
@@ -191,10 +218,10 @@ function openPreview(id) {
     if (st.r !== null) t.r = st.r;
     if (st.font) { t.fh = st.font[0]; t.hw = st.font[1]; t.up = false; }
     frame.style.maxWidth = { desktop: "100%", tablet: "560px", phone: "320px" }[st.dev];
-    mountScaled(box, t, st.pal, DEVICES[st.dev], true);
+    mountScaled(box, t, st.pal, DEVICES[st.dev], true, st.pg);
   }
   const group = (sel, fn) => $$(sel, lab).forEach(b => b.addEventListener("click", () => { $$(sel, lab).forEach(x => x.setAttribute("aria-pressed", x === b)); fn(b); draw(); }));
-  group("[data-vibe]", b => { st.vibe = b.dataset.vibe; st.pal = 0; });
+  group("[data-vibe]", b => { st.vibe = b.dataset.vibe; st.pal = 0; st.pg = 0; });
   group("[data-accent]", b => { st.accent = b.dataset.accent || null; });
   group("[data-font]", b => { st.font = b.dataset.font ? [b.dataset.font, +b.dataset.w] : null; });
   group("[data-ldev]", b => { st.dev = b.dataset.ldev; });

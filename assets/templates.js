@@ -429,12 +429,15 @@ function tpArt(t, i = 0, p) {
 
 function tpPal(t, p) { return t.pal[p || 0]; }
 
-function tpRender(t, palIdx = 0) {
+/* pg: 0 = home, 1-4 = the template's four menu pages */
+function tpRender(t, palIdx = 0, pg = 0) {
   const P = tpPal(t, palIdx);
   const vars = `--bg:${P.bg};--fg:${P.fg};--mu:${P.mu};--ac:${P.ac};--acfg:${P.acfg};--sf:${P.sf};--hi:${P.hi};--r:${t.r}px;--fh:${t.fh};--fb:${t.fb};--hw:${t.hw}`;
   const img = (i, extra = "", cls = "") => `<div class="tp-img ${cls}" style="background:${tpArt(t, i)}${extra}"></div>`;
-  const nav = `<div class="tp-nav"><b class="tp-logo">${t.brand}</b><span class="tp-links">${t.nav.map(n => `<span>${n}</span>`).join("")}</span><span class="tp-btn">${t.cta}</span></div>`;
-  const btns = `<div class="tp-btns"><span class="tp-btn">${t.b1}</span><span class="tp-btn ghost">${t.b2}</span></div>`;
+  const pages = ["Home", ...t.nav];
+  const nav = `<div class="tp-nav"><a class="tp-logo" data-pg="0">${t.brand}</a><span class="tp-links">${t.nav.map((n, i) => `<a data-pg="${i + 1}"${pg === i + 1 ? ' class="on"' : ""}>${n}</a>`).join("")}</span><a class="tp-btn" data-pg="4">${t.cta}</a><button class="tp-burger" type="button" data-burger aria-label="Open menu"><i></i><i></i><i></i></button></div>
+    <div class="tp-mnav">${pages.map((n, i) => `<a data-pg="${i}"${pg === i ? ' class="on"' : ""}>${n}</a>`).join("")}<a class="tp-btn" data-pg="4">${t.cta}</a></div>`;
+  const btns = `<div class="tp-btns"><a class="tp-btn" data-pg="4">${t.b1}</a><a class="tp-btn ghost" data-pg="1">${t.b2}</a></div>`;
   const stats = `<div class="tp-stats">${t.stats.map(s => `<div><b>${s[0]}</b><small>${s[1]}</small></div>`).join("")}</div>`;
   const text = `<span class="tp-kick">${t.kicker}</span><h1>${t.title}</h1><p class="tp-sub">${t.sub}</p>${btns}`;
   let widget = img(0, "", "tall");
@@ -452,12 +455,19 @@ function tpRender(t, palIdx = 0) {
   if (t.items === "cards") items = `<div class="tp-cards">${L.map((x, i) => `<div class="tp-cardi">${img(i + 4)}<div><b>${x[0]}</b><p>${x[1]}</p><span class="tp-price">${x[2]}</span></div></div>`).join("")}</div>`;
   if (t.items === "menu") items = `<div class="tp-menu">${L.map(x => `<div><span><b>${x[0]}</b><small>${x[1]}</small></span><i></i><em>${x[2]}</em></div>`).join("")}</div>`;
   if (t.items === "products") items = `<div class="tp-prods">${L.map((x, i) => `<div>${img(i + 2, "", "sq")}<b>${x[0]}</b><small>${x[1]}</small><em>${x[2]}</em></div>`).join("")}</div>`;
-  if (t.items === "schedule") items = `<div class="tp-sched">${L.map((x, i) => `<div class="${i === 1 ? "on" : ""}"><em>${x[0]}</em><b>${x[1]}</b><small>${x[2]}</small><span class="tp-btn ${i === 1 ? "" : "ghost"}">${t.id === "gather" ? "Details" : "Book"}</span></div>`).join("")}</div>`;
+  if (t.items === "schedule") items = `<div class="tp-sched">${L.map((x, i) => `<div class="${i === 1 ? "on" : ""}"><em>${x[0]}</em><b>${x[1]}</b><small>${x[2]}</small><a class="tp-btn ${i === 1 ? "" : "ghost"}" data-pg="4">${t.id === "gather" ? "Details" : "Book"}</a></div>`).join("")}</div>`;
   if (t.items === "listings") items = `<div class="tp-cards">${L.map((x, i) => `<div class="tp-cardi">${img(i + 1)}<div><span class="tp-price big">${x[2]}</span><b>${x[0]}</b><p>${x[1]}</p></div></div>`).join("")}</div>`;
   if (t.items === "gallery") items = `<div class="tp-gal">${L.map((x, i) => `<div class="g${i}">${img(i + 1)}<small>${x[0]}</small></div>`).join("")}</div>`;
-  const list = `<section class="tp-list"><div class="tp-h2"><h2>${t.secTitle}</h2><span class="tp-link">View all →</span></div>${items}</section>`;
+  const list = (more = true) => `<section class="tp-list"><div class="tp-h2"><h2>${t.secTitle}</h2>${more ? `<a class="tp-link" data-pg="1">View all →</a>` : ""}</div>${items}</section>`;
   const quote = `<section class="tp-quote"><span class="tp-stars">★★★★★</span><blockquote>“${t.quote[0]}”</blockquote><small>${t.quote[1]}</small></section>`;
-  const cta = `<section class="tp-cta"><div><h2>${t.ctaT}</h2><p>${t.ctaS}</p></div><span class="tp-btn">${t.b1}</span></section>`;
-  const foot = `<footer class="tp-foot"><b class="tp-logo">${t.brand}</b><span>${t.nav.join(" · ")}</span><small>© 2026 ${t.brand.replace(/&/g, "&amp;")}</small></footer>`;
-  return `<div class="tp${t.up ? " up" : ""}" style="${vars}">${nav}${hero}${feats}${list}${quote}${cta}${foot}</div>`;
+  const cta = `<section class="tp-cta"><div><h2>${t.ctaT}</h2><p>${t.ctaS}</p></div><a class="tp-btn" data-pg="4">${t.b1}</a></section>`;
+  const foot = `<footer class="tp-foot"><a class="tp-logo" data-pg="0">${t.brand}</a><span class="tp-flinks">${pages.map((n, i) => `<a data-pg="${i}">${n}</a>`).join("")}</span><small>© 2026 ${t.brand.replace(/&/g, "&amp;")}</small></footer>`;
+  const head = (intro, i) => `<section class="tp-phead" style="--art:${tpArt(t, i + 6)}"><div><small><a data-pg="0">Home</a> / ${pages[pg]}</small><h1>${pages[pg]}</h1><p class="tp-sub">${intro}</p></div><div class="tp-img"></div></section>`;
+  let body;
+  if (pg === 1) body = head(t.sub, 1) + list(false) + feats + cta;
+  else if (pg === 2) body = head(`Why people choose ${t.brand}.`, 2) + `<section class="tp-zig">${t.feats.map((f, i) => `<div>${img(i + 7)}<div><i>${String(i + 1).padStart(2, "0")}</i><h2>${f[0]}</h2><p>${f[1]} ${t.sub}</p><a class="tp-link" data-pg="4">Get started →</a></div></div>`).join("")}</section>` + stats.replace("tp-stats", "tp-stats band") + quote + cta;
+  else if (pg === 3) body = head(`A closer look at ${t.brand}.`, 3) + `<section class="tp-list"><div class="tp-gal">${[...L, ...L].slice(0, 6).map((x, i) => `<div class="g${i}">${img(i + 9)}<small>${x[0]}</small></div>`).join("")}</div></section>` + quote + cta;
+  else if (pg === 4) body = head(t.ctaS, 4) + `<section class="tp-contact"><div class="tp-card tp-form"><b>Send us a message</b><span>Your name</span><span>Email or phone</span><span class="big">How can we help?</span><i>${t.b1}</i><small>We reply within one business day</small></div><div class="tp-info"><div><small>Call or text</small><b>(555) 010-0142</b></div><div><small>Hours</small><b>Mon–Fri 8am–6pm<br>Sat 9am–2pm</b></div><div><small>Visit</small><b>214 Harbor Street<br>Your Town, VA</b></div>${img(12, "", "map")}</div></section>`;
+  else body = hero + feats + list() + quote + cta;
+  return `<div class="tp${t.up ? " up" : ""}" data-page="${pg}" style="${vars}">${nav}${body}${foot}</div>`;
 }
