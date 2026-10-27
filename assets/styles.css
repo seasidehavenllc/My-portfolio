@@ -456,3 +456,5 @@ main{animation:pagein .5s var(--ease)}
 .to-top.on{opacity:1;visibility:visible;transform:none}
 .to-top:hover{transform:translateY(-3px)}
 .pv-top{position:absolute;right:24px;bottom:24px}
+.quote-alt{display:block;text-align:center;font-size:.85rem;color:var(--muted);margin-top:-4px}
+.quote-alt:hover{color:var(--white)}

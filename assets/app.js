@@ -1,7 +1,26 @@
 /* ======================= CONFIG — edit these ======================= */
 const CONFIG = {
   email: "info@seasidehavenllc.com",   // your studio email
-  phone: "(434) 233-0231"               // your studio phone
+  phone: "(434) 233-0231",              // your studio phone
+
+  /* Online checkout. Paste a Stripe Payment Link (https://buy.stripe.com/...) for
+     each package. Any left empty keeps its "get a quote" button instead.
+     In Stripe, set each link's after-payment page to <your site>/welcome.html */
+  pay: {
+    launch: "",      // Launch template site, $799 in full
+    business: "",    // Business, $1,250 deposit
+    growth: "",      // Growth, $2,500 deposit
+    polish: "",      // Polish, $299 in full
+    revamp: "",      // Revamp, $750 deposit
+    revampPlus: "",  // Revamp Plus, $1,500 deposit
+    careHost: "",    // Host plan, $29/month subscription
+    careCare: "",    // Care plan, $59/month subscription
+    careGrow: ""     // Grow plan, $149/month subscription
+  },
+
+  /* Form inbox. Paste a form endpoint (for example from Formspree) to receive the
+     quote and onboarding forms automatically. Empty = opens the visitor's email app. */
+  formEndpoint: ""
 };
 /* =================================================================== */
 
@@ -26,6 +45,13 @@ function toast(text) {
   t.textContent = text; t.classList.add("on");
   clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2600);
 }
+
+/* checkout buttons: switch to Stripe once a payment link is configured */
+$$("[data-pay]").forEach(a => {
+  const url = CONFIG.pay[a.dataset.pay]; if (!url) return;
+  a.href = url; a.textContent = a.dataset.paytext;
+  a.insertAdjacentHTML("afterend", `<a class="quote-alt" href="contact.html?plan=${encodeURIComponent(a.closest(".plan")?.querySelector("h3")?.textContent || "")}">Questions first? Get a free quote</a>`);
+});
 
 /* header, scroll progress, mobile menu */
 (() => {
@@ -217,7 +243,9 @@ function openPreview(id) {
     const avail = stage.clientWidth - 48;
     dev.style.width = Math.min(avail, dlg._dev === "desktop" ? avail : dlg._dev === "tablet" ? 600 : 330) + "px";
     mountScaled(dev, dlg._t, dlg._pal, w, true, dlg._pg);
-    $("#pvGo").href = `contact.html?template=${dlg._t.id}&palette=${dlg._pal + 1}`;
+    const ref = `${dlg._t.id}-palette-${dlg._pal + 1}`, go = $("#pvGo");
+    if (CONFIG.pay.launch) { go.href = `${CONFIG.pay.launch}?client_reference_id=${ref}`; go.textContent = "Buy this template · $799"; }
+    else go.href = `contact.html?template=${dlg._t.id}&palette=${dlg._pal + 1}`;
   }
   dlg._draw = draw;
   dlg.showModal(); draw();
@@ -468,11 +496,25 @@ function openPreview(id) {
     form.elements.tpl.value = `${t.name}, palette ${pal}`;
   }
   if (plan) { const o = [...form.elements.need.options].find(o => o.text.toLowerCase().startsWith(plan.toLowerCase())); if (o) form.elements.need.value = o.text; }
-  form.addEventListener("submit", e => {
+  if (CONFIG.formEndpoint) $$("[data-formnote]").forEach(n => n.textContent = "We reply within one business day.");
+  form.addEventListener("submit", async e => {
     e.preventDefault();
-    const f = new FormData(form);
-    const body = `Name: ${f.get("name")}\nBusiness: ${f.get("biz")}\nPhone: ${f.get("phone")}\nCurrent website: ${f.get("site")}\nPackage: ${f.get("need")}\nTemplate: ${f.get("tpl") || "n/a"}\nTimeline: ${f.get("when")}\n\n${f.get("msg")}`;
-    location.href = `mailto:${CONFIG.email}?subject=${encodeURIComponent("New website inquiry: " + (f.get("biz") || f.get("name")))}&body=${encodeURIComponent(body)}`;
+    const f = new FormData(form), kind = form.dataset.kind === "onboarding" ? "New client onboarding" : "New website inquiry";
+    const subject = `${kind}: ${f.get("biz") || f.get("name")}`;
+    if (CONFIG.formEndpoint) {
+      f.append("_subject", subject);
+      const btn = $("button[type=submit]", form); btn.disabled = true;
+      try {
+        const r = await fetch(CONFIG.formEndpoint, { method: "POST", body: f, headers: { Accept: "application/json" } });
+        if (!r.ok) throw 0;
+        form.innerHTML = `<div style="text-align:center;padding:40px 10px"><h2 style="font-size:2rem">Got it, thank you!</h2><p style="margin-top:12px">We'll be in touch within one business day.</p></div>`;
+      } catch { btn.disabled = false; toast("Couldn't send. Please call or email us instead."); }
+      return;
+    }
+    const body = [...form.querySelectorAll("input:not([type=hidden]),select,textarea")].filter(el => el.value.trim())
+      .map(el => `${el.closest("label")?.firstChild.textContent.trim() || el.name}: ${el.value}`).join("\n");
+    const tpl = f.get("tpl") && form.elements.tpl.type === "hidden" ? `\nTemplate: ${f.get("tpl")}` : "";
+    location.href = `mailto:${CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body + tpl)}`;
   });
 })();
 
