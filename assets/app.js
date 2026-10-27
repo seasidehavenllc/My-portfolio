@@ -6,6 +6,11 @@ const CONFIG = {
 /* =================================================================== */
 
 document.documentElement.classList.remove("no-js");
+
+/* every page opens at the top (unless the link points at a section) */
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+const toTop = () => { if (!location.hash) scrollTo({ top: 0, behavior: "instant" }); };
+toTop(); addEventListener("pageshow", toTop);
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const money = n => "$" + Math.round(n).toLocaleString();
@@ -44,6 +49,17 @@ $$(".dd").forEach(dd => {
   document.addEventListener("click", e => { if (!dd.contains(e.target)) set(false); });
   dd.addEventListener("focusout", e => { if (!dd.contains(e.relatedTarget)) set(false); });
 });
+
+/* back-to-top button */
+(() => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "to-top"; b.setAttribute("aria-label", "Back to top");
+  b.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+  b.addEventListener("click", () => scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }));
+  document.body.appendChild(b);
+  const show = () => b.classList.toggle("on", scrollY > 600);
+  addEventListener("scroll", show, { passive: true }); show();
+})();
 
 /* reveal on scroll */
 (() => {
@@ -174,13 +190,17 @@ function openPreview(id) {
         <div class="pv-x"><a class="btn btn-grad btn-sm" id="pvGo" href="contact.html">Start with this template</a><button class="icon-btn" type="button" id="pvClose" aria-label="Close preview"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       </div>
       <div class="pv-stage"><div class="pv-device" id="pvDev"></div></div>
+      <button class="to-top pv-top" id="pvTop" type="button" aria-label="Back to top of preview"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
     </dialog>`);
     dlg = $("#pv");
     $("#pvClose").addEventListener("click", () => dlg.close());
     dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
     $$("[data-dev]", dlg).forEach(b => b.addEventListener("click", () => { dlg._dev = b.dataset.dev; $$("[data-dev]", dlg).forEach(x => x.setAttribute("aria-pressed", x === b)); dlg._draw(); }));
     addEventListener("resize", () => dlg.open && dlg._draw());
-    const go = n => { dlg._pg = n; $("#pvPage").value = n; dlg._draw(); };
+    const stage = $(".pv-stage", dlg), top = $("#pvTop");
+    const go = n => { dlg._pg = n; $("#pvPage").value = n; dlg._draw(); stage.scrollTop = 0; };
+    stage.addEventListener("scroll", () => top.classList.toggle("on", stage.scrollTop > 500), { passive: true });
+    top.addEventListener("click", () => stage.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }));
     $("#pvPage").addEventListener("change", e => go(+e.target.value));
     liveNav($("#pvDev"), go, $(".pv-stage", dlg));
   }
