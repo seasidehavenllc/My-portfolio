@@ -16,14 +16,18 @@ const CONFIG = {
     careHost: "",    // Host plan, $29/month subscription
     careCare: "",    // Care plan, $59/month subscription
     careGrow: "",    // Grow plan, $149/month subscription
-    download: ""     // Site editor download (price below). In Stripe, set this link's
+    editorBuy: "",   // Site editor, buy outright (one-time, price below). In Stripe, set this link's
                      // after-payment redirect to <your site>/editor.html?paid={CHECKOUT_SESSION_ID}
+    editorMonthly: "" // Site editor, hosted plan (monthly subscription, price below). In Stripe, set
+                     // this link's after-payment redirect to <your site>/welcome.html?design=1
   },
 
-  /* What a visitor pays to download the site they built in the editor.
-     Change the number to change the price everywhere. 0 makes the download free.
-     7 is 40% of the cheapest Wix plan ($17 a month), charged once instead of monthly. */
-  downloadPrice: 7,
+  /* Site editor prices. Designing is always free; these are what a visitor pays to keep the site.
+     Change a number and it changes everywhere on the site.
+       monthly: you host their site for them, billed monthly. 7 is 40% of Wix's cheapest plan ($17 a month).
+       buy:     they pay once and download the site file to host anywhere. 79 is about 40% of a year of
+                that same Wix plan. Set buy to 0 to make the download free. */
+  editorPrice: { monthly: 7, buy: 79 },
 
   /* Form inbox. Paste a form endpoint (for example from Formspree) to receive the
      quote and onboarding forms automatically. Empty = opens the visitor's email app. */

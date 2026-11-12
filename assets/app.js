@@ -503,14 +503,24 @@ function openPreview(id) {
       const summary = [`Custom design from the site editor, based on ${src ? src.name : d.src}`, `Business: ${t.brand}`,
         `Colors: background ${P.bg}, text ${P.fg}, buttons ${P.ac}, highlights ${P.hi}`, `Fonts: ${t.fh.split("'")[1]} / ${t.fb.split("'")[1]}`,
         `Layout: ${t.layout}, corners ${t.r}px`, `Home sections: ${(t.sections || []).join(", ")}`, `Menu: ${t.nav.join(", ")}`, `Photos uploaded: ${Object.keys(t.imgs || {}).length}`].join("\n");
-      $(".picked").classList.add("on");
-      $(".picked span").textContent = `Your design from the site editor${src ? " (based on " + src.name + ")" : ""}`;
-      form.elements.need.value = "Launch: template site ($799)";
-      form.elements.tpl.value = summary;
+      const label = `Your design from the site editor${src ? " (based on " + src.name + ")" : ""}`, hidden = form.elements.tpl.type === "hidden";
+      if ($(".picked")) { $(".picked").classList.add("on"); $(".picked span").textContent = label; }
+      const hosted = [...form.elements.need.options].find(o => o.dataset.edprice === "monthly");
+      form.elements.need.value = !plan && hosted && form.dataset.kind === "onboarding" ? hosted.text : "Launch: template site ($799)";
+      form.elements.tpl.value = hidden ? summary : label;
       if (form.elements.biz && !form.elements.biz.value) form.elements.biz.value = t.brand;
+      /* the design itself lives in this browser, so give the visitor a file to send along */
+      const raw = localStorage.getItem("shs-editor-v1");
+      form.insertAdjacentHTML("afterbegin", `<div class="design-note"><b>One more step: send us your design.</b> Save your design file, then email it to <a href="mailto:${CONFIG.email}">${CONFIG.email}</a> so we can put your site online exactly as you built it. <button class="btn btn-ghost btn-sm" type="button" id="saveDesign">Save my design file</button></div>`);
+      $("#saveDesign").addEventListener("click", () => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([raw], { type: "application/json" })); a.download = "my-site-design.json";
+        document.body.appendChild(a); a.click(); a.remove();
+      });
+      if (CONFIG.formEndpoint) { const h = document.createElement("input"); h.type = "hidden"; h.name = "design_summary"; h.value = summary; form.appendChild(h); }
     } catch (e) { /* no saved design in this browser: the form still works without it */ }
   }
-  $$("[data-dlprice]").forEach(o => { o.textContent = o.textContent.replace(/\$\d+/, "$" + CONFIG.downloadPrice); });
+  $$("[data-edprice]").forEach(o => { o.textContent = o.textContent.replace(/\$\d+/, "$" + CONFIG.editorPrice[o.dataset.edprice]); });
   if (plan) { const o = [...form.elements.need.options].find(o => o.text.toLowerCase().startsWith(plan.toLowerCase())); if (o) form.elements.need.value = o.text; }
   if (CONFIG.formEndpoint) $$("[data-formnote]").forEach(n => n.textContent = "We reply within one business day.");
   form.addEventListener("submit", async e => {

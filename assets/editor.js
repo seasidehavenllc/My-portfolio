@@ -367,27 +367,58 @@
     const sheet = [...document.styleSheets].find(s => (s.href || "").includes("templates.css"));
     return sheet ? [...sheet.cssRules].map(r => r.cssText).join("\n") : "";
   }
-  /* The download is a paid extra (CONFIG.downloadPrice). With a Stripe link in CONFIG.pay.download the
-     visitor pays there and Stripe sends them back to editor.html?paid=<checkout session id>, which unlocks
-     the download in this browser. Without a link, they are sent to the quote form instead.
-     Note: this site has no server, so the unlock is checked in the browser only. */
-  const PAID = "shs-editor-paid", price = +CONFIG.downloadPrice || 0, payDlg = $("#edPay");
-  const isPaid = () => { if (!price) return true; try { return localStorage.getItem(PAID) === "1"; } catch (e) { return false; } };
-  const labelExport = () => { $("#edExport").textContent = isPaid() ? "Download" : `Download · $${price}`; };
+  /* Designing is free. Keeping the site is paid, two ways (prices in CONFIG.editorPrice):
+       buy      one payment, then the visitor downloads the site file. With a Stripe link in
+                CONFIG.pay.editorBuy, Stripe sends them back to editor.html?paid=<checkout session id>,
+                which unlocks the download in this browser.
+       monthly  the studio hosts the site. With a Stripe link in CONFIG.pay.editorMonthly, Stripe sends
+                them to welcome.html?design=1, where they hand over their design.
+     Without a link, either choice goes to the quote form with the design attached.
+     Note: this site has no server, so the download unlock is checked in the browser only. */
+  const PAID = "shs-editor-paid", EP = CONFIG.editorPrice || {}, buy = +EP.buy || 0, monthly = +EP.monthly || 0, payDlg = $("#edPay");
+  const isPaid = () => { if (!buy) return true; try { return localStorage.getItem(PAID) === "1"; } catch (e) { return false; } };
+  const labelExport = () => { $("#edExport").textContent = isPaid() ? "Download" : "Get my site"; };
+  const stripeRef = () => "editor-" + S.src.replace(/[^A-Za-z0-9_-]/g, "_");
+  const checkout = (link, plan) => {
+    save();
+    location.href = link ? link + (link.includes("?") ? "&" : "?") + "client_reference_id=" + stripeRef() : `contact.html?template=${encodeURIComponent(S.src)}&design=1&plan=${plan}`;
+  };
   $("#edPayX").addEventListener("click", () => payDlg.close());
   payDlg.addEventListener("click", e => { if (e.target === payDlg) payDlg.close(); });
-  $("#edPayGo").addEventListener("click", () => {
-    save();
-    const link = CONFIG.pay.download, ref = "editor-" + S.src.replace(/[^A-Za-z0-9_-]/g, "_");
-    location.href = link ? link + (link.includes("?") ? "&" : "?") + "client_reference_id=" + ref : `contact.html?template=${encodeURIComponent(S.src)}&design=1&plan=Download`;
-  });
+  $("#edPayGo").addEventListener("click", () => checkout(CONFIG.pay.editorBuy, "Download"));
+  $("#edPayMo").addEventListener("click", () => checkout(CONFIG.pay.editorMonthly, "Hosted"));
   $("#edExport").addEventListener("click", () => {
     if (isPaid()) return exportSite();
-    $("#edPayPrice").textContent = "$" + price;
-    $("#edPayGo").textContent = CONFIG.pay.download ? `Pay $${price} and download` : `Request my download · $${price}`;
+    $("#edBuyPrice").textContent = "$" + buy; $("#edMoPrice").textContent = "$" + monthly;
+    $("#edPayGo").textContent = CONFIG.pay.editorBuy ? `Buy for $${buy}` : `Request it · $${buy}`;
+    $("#edPayMo").textContent = CONFIG.pay.editorMonthly ? `Start for $${monthly}/month` : `Request it · $${monthly}/month`;
+    $(".ed-plan.best").hidden = !monthly;
     $("#edPayLaunch").href = $("#edLaunch").href;
     payDlg.showModal();
   });
+
+  /* ---------- design files: a backup the visitor can keep, and how a design reaches the studio ---------- */
+  const slug = () => S.t.brand.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "my-site";
+  function saveAs(name, text, type) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+  const validDesign = d => d && d.t && d.P && Array.isArray(d.t.nav) && Array.isArray(d.t.list) && Array.isArray(d.t.stats) && Array.isArray(d.t.feats) && Array.isArray(d.t.quote) && d.t.art && typeof d.t.brand === "string" && typeof d.P.bg === "string";
+  $("#edSaveFile").addEventListener("click", () => { saveAs(slug() + "-design.json", JSON.stringify(S), "application/json"); toast("Design file saved."); });
+  $("#edOpenFile").addEventListener("click", () => { const f = $("#edDesignFile"); f.value = ""; f.click(); });
+  $("#edDesignFile").addEventListener("change", async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      if (!validDesign(d)) throw 0;
+      S = { src: tplGet(d.src) ? d.src : "harbor", t: d.t, P: d.P };
+      if (!Array.isArray(S.t.sections) || !S.t.sections.length) S.t.sections = tpExtra(S.t).sections.slice();
+      pg = 0; commit(); syncPanels(); draw(false); toast("Design opened.");
+    } catch (err) { toast("That file isn't a design saved from this editor."); }
+  });
+
   async function exportSite() {
     const css = await templateCss();
     if (!css) return toast("Couldn't prepare the download. Please try again.");
@@ -421,11 +452,7 @@ document.addEventListener("click",function(e){
 <\/script>
 </body>
 </html>`;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-    a.download = (S.t.brand.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "my-site") + ".html";
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    saveAs(slug() + ".html", html, "text/html");
     toast("Downloaded. Open the file in any browser to see your site.");
   }
 

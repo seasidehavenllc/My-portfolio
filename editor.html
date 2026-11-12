@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Site Editor · Seaside Haven Studios</title>
-<meta name="description" content="Design your own website in the browser. Start from any of our original templates, change colors, fonts, layout, text and photos for free, then download it for a small one-time price or have us launch it.">
+<meta name="description" content="Design your own website in the browser. Start from any of our original templates, change colors, fonts, layout, text and photos for free, then keep it for a low monthly price, buy it outright, or have us launch it.">
 <meta property="og:title" content="Site Editor · Seaside Haven Studios">
-<meta property="og:description" content="Design your own website in the browser. Start from any of our original templates, change colors, fonts, layout, text and photos for free, then download it for a small one-time price or have us launch it.">
+<meta property="og:description" content="Design your own website in the browser. Start from any of our original templates, change colors, fonts, layout, text and photos for free, then keep it for a low monthly price, buy it outright, or have us launch it.">
 <meta name="theme-color" content="#05080C">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,7 +31,7 @@
   <div class="ed-actions">
     <span class="ed-saved" id="edSaved" role="status">Saved</span>
     <button class="ed-btn" type="button" id="edPreview" aria-pressed="false">Preview</button>
-    <button class="ed-btn" type="button" id="edExport">Download</button>
+    <button class="ed-btn" type="button" id="edExport">Get my site</button>
     <a class="ed-btn ed-go" id="edLaunch" href="contact.html">Launch it for me</a>
   </div>
 </header>
@@ -83,6 +83,10 @@
       <label class="ed-f">Main list style<select class="ed-in" id="edItems"><option value="cards">Cards with pictures</option><option value="menu">Menu with prices</option><option value="products">Product grid</option><option value="schedule">Schedule rows</option><option value="listings">Listings with big prices</option><option value="gallery">Photo gallery</option></select></label>
       <h3>How many items</h3>
       <div class="ed-counts" id="edCounts"></div>
+      <h3>Design file</h3>
+      <p class="ed-hint">Save your design to a file as a backup, or open one you saved earlier.</p>
+      <div class="ed-two"><button class="ed-btn" type="button" id="edSaveFile">Save file</button><button class="ed-btn" type="button" id="edOpenFile">Open file</button></div>
+      <input type="file" id="edDesignFile" accept=".json,application/json" hidden>
       <h3>Start over</h3>
       <button class="ed-btn ed-wide" type="button" id="edReset">Reset this design</button>
     </section>
@@ -97,11 +101,24 @@
 <button class="ed-fab" type="button" id="edFab" aria-expanded="true" aria-controls="edSide">Tools</button>
 <div class="ed-pop" id="edPop" hidden></div>
 <dialog class="ed-pay" id="edPay" aria-labelledby="edPayT">
-  <h2 id="edPayT">Download your site</h2>
-  <p class="ed-payp"><b id="edPayPrice"></b> one time</p>
-  <ul><li>All five pages in one file you can host anywhere</li><li>Your text, colors, fonts and photos included</li><li>Download again any time from this browser</li></ul>
-  <button class="ed-btn ed-go ed-wide" type="button" id="edPayGo"></button>
-  <a class="ed-btn ed-wide" id="edPayLaunch" href="contact.html">Or have us launch it for you, from $799</a>
+  <h2 id="edPayT">Make it yours</h2>
+  <p class="ed-payp">Designing is free. Pick how you'd like to keep your site.</p>
+  <div class="ed-plans">
+    <div class="ed-plan best">
+      <span class="ed-tag">Lowest to start</span>
+      <h3>Pay monthly</h3>
+      <p class="ed-price"><b id="edMoPrice"></b><span>/month</span></p>
+      <ul><li>We put your site online and host it</li><li>Secure (SSL), fast and backed up</li><li>Cancel any time</li></ul>
+      <button class="ed-btn ed-go ed-wide" type="button" id="edPayMo"></button>
+    </div>
+    <div class="ed-plan">
+      <h3>Buy it outright</h3>
+      <p class="ed-price"><b id="edBuyPrice"></b><span>one time</span></p>
+      <ul><li>Download all five pages as one file</li><li>Host it anywhere you like</li><li>No monthly fee, yours to keep</li></ul>
+      <button class="ed-btn ed-wide" type="button" id="edPayGo"></button>
+    </div>
+  </div>
+  <a class="ed-link" id="edPayLaunch" href="contact.html">Want it done for you? We'll build and launch it, from $799</a>
   <button class="ed-link" type="button" id="edPayX">Keep editing</button>
 </dialog>
 <input type="file" id="edFile" accept="image/*" hidden>
