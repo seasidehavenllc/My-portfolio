@@ -367,7 +367,28 @@
     const sheet = [...document.styleSheets].find(s => (s.href || "").includes("templates.css"));
     return sheet ? [...sheet.cssRules].map(r => r.cssText).join("\n") : "";
   }
-  $("#edExport").addEventListener("click", async () => {
+  /* The download is a paid extra (CONFIG.downloadPrice). With a Stripe link in CONFIG.pay.download the
+     visitor pays there and Stripe sends them back to editor.html?paid=<checkout session id>, which unlocks
+     the download in this browser. Without a link, they are sent to the quote form instead.
+     Note: this site has no server, so the unlock is checked in the browser only. */
+  const PAID = "shs-editor-paid", price = +CONFIG.downloadPrice || 0, payDlg = $("#edPay");
+  const isPaid = () => { if (!price) return true; try { return localStorage.getItem(PAID) === "1"; } catch (e) { return false; } };
+  const labelExport = () => { $("#edExport").textContent = isPaid() ? "Download" : `Download · $${price}`; };
+  $("#edPayX").addEventListener("click", () => payDlg.close());
+  payDlg.addEventListener("click", e => { if (e.target === payDlg) payDlg.close(); });
+  $("#edPayGo").addEventListener("click", () => {
+    save();
+    const link = CONFIG.pay.download, ref = "editor-" + S.src.replace(/[^A-Za-z0-9_-]/g, "_");
+    location.href = link ? link + (link.includes("?") ? "&" : "?") + "client_reference_id=" + ref : `contact.html?template=${encodeURIComponent(S.src)}&design=1&plan=Download`;
+  });
+  $("#edExport").addEventListener("click", () => {
+    if (isPaid()) return exportSite();
+    $("#edPayPrice").textContent = "$" + price;
+    $("#edPayGo").textContent = CONFIG.pay.download ? `Pay $${price} and download` : `Request my download · $${price}`;
+    $("#edPayLaunch").href = $("#edLaunch").href;
+    payDlg.showModal();
+  });
+  async function exportSite() {
     const css = await templateCss();
     if (!css) return toast("Couldn't prepare the download. Please try again.");
     const fams = [...new Set([S.t.fh, S.t.fb].map(f => (f.split("'")[1] || "").trim()))].map(n => FONT_URL[n]).filter(Boolean);
@@ -406,7 +427,7 @@ document.addEventListener("click",function(e){
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     toast("Downloaded. Open the file in any browser to see your site.");
-  });
+  }
 
   /* ---------- go ---------- */
   const qp = new URLSearchParams(location.search), want = qp.get("t"), saved = load();
@@ -414,7 +435,11 @@ document.addEventListener("click",function(e){
     S = !saved || confirm(`Start a new design from the ${tplGet(want).name} template? This replaces the design you were working on.`) ? fresh(want, qp.get("p") == null ? null : +qp.get("p")) : saved;
   } else S = saved || fresh("harbor");
   if (!Array.isArray(S.t.sections) || !S.t.sections.length) S.t.sections = tpExtra(S.t).sections.slice();
-  if (want) history.replaceState(null, "", location.pathname);
-  commit(); listTemplates(); syncPanels(); draw(false);
+  /* back from Stripe checkout: unlock and hand over the file */
+  const justPaid = /^cs_(live|test)_[A-Za-z0-9]{10,}$/.test(qp.get("paid") || "");
+  if (justPaid) { try { localStorage.setItem(PAID, "1"); } catch (e) { /* private mode: the download below still runs */ } }
+  if (want || qp.has("paid")) history.replaceState(null, "", location.pathname);
+  commit(); listTemplates(); syncPanels(); draw(false); labelExport();
+  if (justPaid) { toast("Payment received. Thank you! Your download is starting."); setTimeout(exportSite, 900); }
   if (saved && S === saved) tab("design");
 })();

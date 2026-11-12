@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Site Editor · Seaside Haven Studios</title>
-<meta name="description" content="Design your own website in the browser. Start from any of our original templates, change colors, fonts, layout, text and photos, then download it or have us launch it.">
+<meta name="description" content="Design your own website in the browser. Start from any of our original templates, change colors, fonts, layout, text and photos for free, then download it for a small one-time price or have us launch it.">
 <meta property="og:title" content="Site Editor · Seaside Haven Studios">
-<meta property="og:description" content="Design your own website in the browser. Start from any of our original templates, change colors, fonts, layout, text and photos, then download it or have us launch it.">
+<meta property="og:description" content="Design your own website in the browser. Start from any of our original templates, change colors, fonts, layout, text and photos for free, then download it for a small one-time price or have us launch it.">
 <meta name="theme-color" content="#05080C">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -96,9 +96,18 @@
 
 <button class="ed-fab" type="button" id="edFab" aria-expanded="true" aria-controls="edSide">Tools</button>
 <div class="ed-pop" id="edPop" hidden></div>
+<dialog class="ed-pay" id="edPay" aria-labelledby="edPayT">
+  <h2 id="edPayT">Download your site</h2>
+  <p class="ed-payp"><b id="edPayPrice"></b> one time</p>
+  <ul><li>All five pages in one file you can host anywhere</li><li>Your text, colors, fonts and photos included</li><li>Download again any time from this browser</li></ul>
+  <button class="ed-btn ed-go ed-wide" type="button" id="edPayGo"></button>
+  <a class="ed-btn ed-wide" id="edPayLaunch" href="contact.html">Or have us launch it for you, from $799</a>
+  <button class="ed-link" type="button" id="edPayX">Keep editing</button>
+</dialog>
 <input type="file" id="edFile" accept="image/*" hidden>
 <noscript><p style="padding:40px;color:#fff">The site editor needs JavaScript turned on.</p></noscript>
 <script src="assets/templates.js"></script>
+<script src="assets/config.js"></script>
 <script src="assets/editor.js"></script>
 </body>
 </html>

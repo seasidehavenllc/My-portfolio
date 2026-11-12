@@ -1,28 +1,4 @@
-/* ======================= CONFIG — edit these ======================= */
-const CONFIG = {
-  email: "info@seasidehavenllc.com",   // your studio email
-  phone: "(434) 233-0231",              // your studio phone
-
-  /* Online checkout. Paste a Stripe Payment Link (https://buy.stripe.com/...) for
-     each package. Any left empty keeps its "get a quote" button instead.
-     In Stripe, set each link's after-payment page to <your site>/welcome.html */
-  pay: {
-    launch: "",      // Launch template site, $799 in full
-    business: "",    // Business, $1,250 deposit
-    growth: "",      // Growth, $2,500 deposit
-    polish: "",      // Polish, $299 in full
-    revamp: "",      // Revamp, $750 deposit
-    revampPlus: "",  // Revamp Plus, $1,500 deposit
-    careHost: "",    // Host plan, $29/month subscription
-    careCare: "",    // Care plan, $59/month subscription
-    careGrow: ""     // Grow plan, $149/month subscription
-  },
-
-  /* Form inbox. Paste a form endpoint (for example from Formspree) to receive the
-     quote and onboarding forms automatically. Empty = opens the visitor's email app. */
-  formEndpoint: ""
-};
-/* =================================================================== */
+/* CONFIG (phone, email, payment links, form inbox) lives in assets/config.js */
 
 document.documentElement.classList.remove("no-js");
 
@@ -534,6 +510,7 @@ function openPreview(id) {
       if (form.elements.biz && !form.elements.biz.value) form.elements.biz.value = t.brand;
     } catch (e) { /* no saved design in this browser: the form still works without it */ }
   }
+  $$("[data-dlprice]").forEach(o => { o.textContent = o.textContent.replace(/\$\d+/, "$" + CONFIG.downloadPrice); });
   if (plan) { const o = [...form.elements.need.options].find(o => o.text.toLowerCase().startsWith(plan.toLowerCase())); if (o) form.elements.need.value = o.text; }
   if (CONFIG.formEndpoint) $$("[data-formnote]").forEach(n => n.textContent = "We reply within one business day.");
   form.addEventListener("submit", async e => {
