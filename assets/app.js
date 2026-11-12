@@ -123,7 +123,7 @@ $$(".spot").forEach(el => el.addEventListener("pointermove", e => {
 
 /* ---------- scaled template rendering ---------- */
 const DEVICES = { desktop: 1280, tablet: 820, phone: 390 };
-function mountScaled(box, t, pal = 0, width = 1280, fill = false, pg = 0) {
+function mountScaled(box, t, pal, width = 1280, fill = false, pg = 0) {
   box.innerHTML = `<div class="scale" style="width:${width}px">${tpRender(t, pal, pg)}</div>`;
   const sc = box.firstElementChild, tp = sc.firstElementChild;
   const fit = () => {
@@ -147,7 +147,7 @@ function liveNav(box, onPage, scroller) {
     if (a) { e.preventDefault(); onPage(+a.dataset.pg); (scroller || box).scrollTop = 0; }
   });
 }
-const tplById = id => typeof TEMPLATES !== "undefined" && TEMPLATES.find(t => t.id === id);
+const tplById = id => typeof TEMPLATES !== "undefined" && tplGet(id);
 
 /* hero stack + featured thumbs */
 $$("[data-thumb]").forEach(el => { const t = tplById(el.dataset.thumb); if (t) mountScaled(el, t, +(el.dataset.pal || 0)); });
@@ -164,41 +164,64 @@ $$("[data-thumb]").forEach(el => { const t = tplById(el.dataset.thumb); if (t) m
 
 /* ---------- template cards + gallery ---------- */
 function cardHTML(t) {
-  const p = t.pal[0];
-  return `<button class="tcard rv" type="button" data-id="${t.id}" data-cat="${t.cat}" aria-label="Preview the ${t.name} template">
+  const pals = t.vname ? [tpPal(t)] : t.pal;
+  return `<button class="tcard rv" type="button" data-id="${t.id}" aria-label="Preview the ${t.name} template${t.vname ? ", " + t.vname : ""}">
     <div class="mbar"><i></i><i></i><i></i></div>
     <div class="thumb" data-tid="${t.id}"></div>
-    <div class="meta"><div class="top"><h3>${t.name}</h3><span class="chip">${t.industry}</span></div><p>${t.blurb}</p>
-    <div class="sw">${t.pal.map(q => `<i style="background:linear-gradient(135deg,${q.bg} 50%,${q.ac} 50%)"></i>`).join("")}<span class="view">5-page live preview →</span></div></div>
+    <div class="meta"><div class="top"><h3>${t.name}</h3><span class="chip">${t.industry}</span></div><p>${t.vname ? `<b class="vtag">${t.vname}</b>` : t.blurb}</p>
+    <div class="sw">${pals.map(q => `<i style="background:linear-gradient(135deg,${q.bg} 50%,${q.ac} 50%)"></i>`).join("")}<span class="view">5-page live preview →</span></div></div>
   </button>`;
 }
-function fillGrid(grid, list) {
-  grid.innerHTML = list.map(cardHTML).join("");
-  $$(".thumb", grid).forEach(el => mountScaled(el, tplById(el.dataset.tid)));
-  $$(".tcard", grid).forEach(c => { c.addEventListener("click", () => openPreview(c.dataset.id)); requestAnimationFrame(() => c.classList.add("in")); });
+/* thumbnails are full live renders, so each one is drawn only when it scrolls near the screen */
+const thumbIO = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  thumbIO.unobserve(e.target); mountScaled(e.target, tplById(e.target.dataset.tid));
+}), { rootMargin: "500px 0px" }) : null;
+function fillGrid(grid, list, append = false) {
+  if (!append) grid.innerHTML = "";
+  const from = grid.children.length;
+  grid.insertAdjacentHTML("beforeend", list.map(cardHTML).join(""));
+  [...grid.children].slice(from).forEach(c => {
+    const th = $(".thumb", c);
+    thumbIO ? thumbIO.observe(th) : mountScaled(th, tplById(th.dataset.tid));
+    c.addEventListener("click", () => openPreview(c.dataset.id));
+    requestAnimationFrame(() => c.classList.add("in"));
+  });
+}
+/* live counts anywhere on the site: data-count="designs|ready|combos" */
+if (typeof TEMPLATES !== "undefined") {
+  const st = tplStats();
+  $$("[data-count]").forEach(el => { const n = st[el.dataset.count || "designs"]; el.textContent = el.dataset.round ? (Math.floor(n / 1000) * 1000).toLocaleString() + "+" : n.toLocaleString(); });
 }
 (() => {
   const feat = $("#tfeatured");
-  if (feat) fillGrid(feat, feat.dataset.ids.split(",").map(tplById));
+  if (feat) fillGrid(feat, feat.dataset.ids.split(",").map(tplById).filter(Boolean));
   const grid = $("#tgrid"); if (!grid) return;
-  fillGrid(grid, TEMPLATES);
-  $$("[data-count]").forEach(el => el.textContent = TEMPLATES.length);
-  const cats = ["All", ...new Set(TEMPLATES.map(t => t.cat))], fl = $("#filters"), q = $("#tsearch"), empty = $(".empty");
+  const PAGE = 24, fl = $("#filters"), q = $("#tsearch"), empty = $(".empty"), more = $("#tmore"), count = $("#tcount"), modes = $$("#tmode button");
+  /* every ready-made look: the designs first, then one variation of each design per round */
+  const everything = [...TEMPLATES];
+  for (let r = 0; r < VARIANTS_PER_DESIGN; r++) TEMPLATES.forEach(t => everything.push(tplVariants(t)[r]));
+  const hay = new Map(everything.map(t => [t.id, tplHay(t)]));
+  const cats = ["All", ...new Set(TEMPLATES.map(t => t.cat))];
   fl.insertAdjacentHTML("afterbegin", cats.map((c, i) => `<button type="button" aria-pressed="${i === 0}" data-cat="${c}">${c}</button>`).join(""));
-  let cat = "All";
+  let cat = "All", mode = "designs", found = [], shown = 0;
+  const showMore = () => {
+    fillGrid(grid, found.slice(shown, shown + PAGE), shown > 0); shown = Math.min(found.length, shown + PAGE);
+    more.hidden = shown >= found.length;
+    count.textContent = found.length ? `Showing ${shown.toLocaleString()} of ${found.length.toLocaleString()}` : "";
+  };
   const apply = () => {
-    /* loose stem match so "dentist" finds "Dental" and "bakery" finds "Bakery" */
-    const raw = q.value.trim().toLowerCase(), s = raw.length > 5 ? raw.slice(0, raw.length - 2) : raw; let n = 0;
-    $$(".tcard", grid).forEach(c => {
-      const t = tplById(c.dataset.id);
-      const ok = (cat === "All" || t.cat === cat) && (!s || (t.name + t.industry + t.blurb + t.cat).toLowerCase().includes(s));
-      c.hidden = !ok; if (ok) n++;
-    });
-    empty.style.display = n ? "none" : "block";
-    $$(".thumb", grid).forEach(el => el._fit && el._fit());
+    /* every word must match; tplSearchWords() loosens them so "dentist" finds "Dental" */
+    const words = tplSearchWords(q.value);
+    found = (mode === "designs" ? TEMPLATES : everything).filter(t => (cat === "All" || t.cat === cat) && words.every(w => hay.get(t.id).includes(w)));
+    shown = 0; showMore();
+    empty.style.display = found.length ? "none" : "block";
   };
   $$("button", fl).forEach(b => b.addEventListener("click", () => { cat = b.dataset.cat; $$("button", fl).forEach(x => x.setAttribute("aria-pressed", x === b)); apply(); }));
-  q.addEventListener("input", apply);
+  modes.forEach(b => b.addEventListener("click", () => { mode = b.dataset.mode; modes.forEach(x => x.setAttribute("aria-pressed", x === b)); apply(); }));
+  more.addEventListener("click", showMore);
+  let h; q.addEventListener("input", () => { clearTimeout(h); h = setTimeout(apply, 120); });
+  apply();
   const want = new URLSearchParams(location.search).get("preview");
   if (want && tplById(want)) openPreview(want);
 })();
@@ -213,7 +236,7 @@ function openPreview(id) {
         <div class="seg" role="group" aria-label="Device">${Object.keys(DEVICES).map((d, i) => `<button type="button" data-dev="${d}" aria-pressed="${i === 0}">${d[0].toUpperCase() + d.slice(1)}</button>`).join("")}</div>
         <div class="pals" role="group" aria-label="Color palette" id="pvPals"></div>
         <label class="pv-page">Page <select id="pvPage"></select></label>
-        <div class="pv-x"><a class="btn btn-grad btn-sm" id="pvGo" href="contact.html">Start with this template</a><button class="icon-btn" type="button" id="pvClose" aria-label="Close preview"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="pv-x"><a class="btn btn-ghost btn-sm" id="pvEdit" href="editor.html">Customize it</a><a class="btn btn-grad btn-sm" id="pvGo" href="contact.html">Start with this template</a><button class="icon-btn" type="button" id="pvClose" aria-label="Close preview"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       </div>
       <div class="pv-stage"><div class="pv-device" id="pvDev"></div></div>
       <button class="to-top pv-top" id="pvTop" type="button" aria-label="Back to top of preview"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
@@ -230,22 +253,23 @@ function openPreview(id) {
     $("#pvPage").addEventListener("change", e => go(+e.target.value));
     liveNav($("#pvDev"), go, $(".pv-stage", dlg));
   }
-  const t = tplById(id); dlg._t = t; dlg._pal = 0; dlg._pg = 0; dlg._dev = dlg._dev || "desktop";
+  const t = tplById(id), allPals = tplAllPals(t); dlg._t = t; dlg._pal = t.p0 || 0; dlg._pg = 0; dlg._dev = dlg._dev || "desktop";
   $("#pvPage").innerHTML = ["Home", ...t.nav].map((n, i) => `<option value="${i}">${n}</option>`).join("");
-  $("#pvName").textContent = t.name + " template";
+  $("#pvName").textContent = t.name + " template" + (t.vname ? " · " + t.vname : "");
   $("#pvInd").textContent = t.industry + " · included in Launch, from $799";
   const pals = $("#pvPals");
-  pals.innerHTML = t.pal.map((q, i) => `<button type="button" aria-label="Palette ${i + 1}" aria-pressed="${i === 0}" style="background:linear-gradient(135deg,${q.bg} 50%,${q.ac} 50%)"></button>`).join("");
+  pals.innerHTML = allPals.map((q, i) => `<button type="button" aria-label="${q.n} palette" title="${q.n}" aria-pressed="${i === dlg._pal}" style="background:linear-gradient(135deg,${q.bg} 50%,${q.ac} 50%)"></button>`).join("");
   $$("button", pals).forEach((b, i) => b.addEventListener("click", () => { dlg._pal = i; $$("button", pals).forEach(x => x.setAttribute("aria-pressed", x === b)); dlg._draw(); }));
   function draw() {
     const dev = $("#pvDev"), stage = $(".pv-stage", dlg), w = DEVICES[dlg._dev];
     dev.className = "pv-device " + dlg._dev;
     const avail = stage.clientWidth - 48;
     dev.style.width = Math.min(avail, dlg._dev === "desktop" ? avail : dlg._dev === "tablet" ? 600 : 330) + "px";
-    mountScaled(dev, dlg._t, dlg._pal, w, true, dlg._pg);
-    const ref = `${dlg._t.id}-palette-${dlg._pal + 1}`, go = $("#pvGo");
+    mountScaled(dev, dlg._t, allPals[dlg._pal], w, true, dlg._pg);
+    const ref = `${dlg._t.id}-${allPals[dlg._pal].n}`.toLowerCase(), go = $("#pvGo");
+    $("#pvEdit").href = `editor.html?t=${encodeURIComponent(dlg._t.id)}&p=${dlg._pal}`;
     if (CONFIG.pay.launch) { go.href = `${CONFIG.pay.launch}?client_reference_id=${ref}`; go.textContent = "Buy this template · $799"; }
-    else go.href = `contact.html?template=${dlg._t.id}&palette=${dlg._pal + 1}`;
+    else go.href = `contact.html?template=${encodeURIComponent(dlg._t.id)}&palette=${encodeURIComponent(allPals[dlg._pal].n)}`;
   }
   dlg._draw = draw;
   dlg.showModal(); draw();
@@ -262,7 +286,7 @@ function openPreview(id) {
   function draw() {
     const t = Object.assign({}, tplById(st.vibe));
     t.pal = t.pal.map(p => Object.assign({}, p));
-    if (st.accent) { t.pal[st.pal].ac = st.accent; t.pal[st.pal].hi = st.accent; t.pal[st.pal].acfg = "#FFFFFF"; }
+    if (st.accent) { t.pal[st.pal].ac = st.accent; t.pal[st.pal].hi = st.accent; t.pal[st.pal].acfg = tpOn(st.accent); }
     if (st.r !== null) t.r = st.r;
     if (st.font) { t.fh = st.font[0]; t.hw = st.font[1]; t.up = false; }
     frame.style.maxWidth = { desktop: "100%", tablet: "560px", phone: "320px" }[st.dev];
@@ -391,14 +415,14 @@ function openPreview(id) {
   const form = $("#chatForm"), input = $("#chatIn");
   const A = [
     [/price|cost|much|cheap|budget/i, "Websites start at $799 for one of our templates customized to your brand. Fully custom sites start at $2,499, and online stores at $4,999. Want me to send the full price list?"],
-    [/old|redo|revamp|refresh|redesign|existing|polish/i, "Yes! If you already have a site, our revamp pricing is 40% off a new build since we reuse your content. A quick polish starts at just $299."],
+    [/\bold\b|redo|revamp|refresh|redesign|existing|polish/i, "Yes! If you already have a site, our revamp pricing is 40% off a new build since we reuse your content. A quick polish starts at just $299."],
     [/fast|long|time|when|week/i, "Template sites launch in about a week. Custom builds take 3 to 4 weeks, and stores 5 to 7."],
-    [/template|look|design|example/i, "We have 18 original templates, from cafés to law firms. Each one can be restyled to your colors and fonts."],
+    [/template|look|design|example/i, `We have ${typeof TEMPLATES !== "undefined" ? TEMPLATES.length : 54} original templates, from cafés to law firms, and you can restyle any of them yourself in our free site editor.`],
     [/book|call|talk|meet|schedule/i, "Happy to! I have openings Tuesday at 10:00 or Thursday at 2:30. Which works better?"],
-    [/tue|thu|10|2:30/i, "You're booked! You'll get a text confirmation and a calendar invite in a moment. 🎉"],
+    [/\b(tue|thu|tuesday|thursday|10|10:00|2:30)\b/i, "You're booked! You'll get a text confirmation and a calendar invite in a moment. 🎉"],
     [/host|domain|email|monthly/i, "Hosting & care starts at $29/month and covers hosting, SSL, backups, security and small edits. You always own your domain."],
     [/wix|squarespace|diy/i, "Wix and Squarespace are great DIY tools. We design and build it for you, and our prices start in the same range as hiring a pro on those platforms."],
-    [/hi|hello|hey/i, "Hey there! 👋 I'm a demo of the chat assistant we can add to your site. Ask me about prices, timelines or revamps."]
+    [/\b(hi|hello|hey)\b/i, "Hey there! 👋 I'm a demo of the chat assistant we can add to your site. Ask me about prices, timelines or revamps."]
   ];
   const add = (txt, who) => { const m = document.createElement("div"); m.className = "msg " + who; m.textContent = txt; box.appendChild(m); box.scrollTop = box.scrollHeight; return m; };
   function reply(q) {
@@ -491,9 +515,24 @@ function openPreview(id) {
   if (tid && typeof TEMPLATES !== "undefined" && tplById(tid)) {
     const t = tplById(tid), pal = qp.get("palette") || "1";
     $(".picked").classList.add("on");
-    $(".picked span").textContent = `${t.name} template (${t.industry}), palette ${pal}`;
+    $(".picked span").textContent = `${t.name} template (${t.industry})${t.vname ? ", " + t.vname : ""}, ${/^\d+$/.test(pal) ? "palette " + pal : pal + " palette"}`;
     form.elements.need.value = "Launch: template site ($799)";
-    form.elements.tpl.value = `${t.name}, palette ${pal}`;
+    form.elements.tpl.value = `${t.name}${t.vname ? " (" + t.vname + ")" : ""}, palette ${pal}`;
+  }
+  /* arriving from the site editor: describe the visitor's own design so the studio can rebuild it */
+  if (qp.get("design") && form.elements.tpl) {
+    try {
+      const d = JSON.parse(localStorage.getItem("shs-editor-v1")), t = d.t, P = d.P;
+      const src = typeof TEMPLATES !== "undefined" && tplById(d.src);
+      const summary = [`Custom design from the site editor, based on ${src ? src.name : d.src}`, `Business: ${t.brand}`,
+        `Colors: background ${P.bg}, text ${P.fg}, buttons ${P.ac}, highlights ${P.hi}`, `Fonts: ${t.fh.split("'")[1]} / ${t.fb.split("'")[1]}`,
+        `Layout: ${t.layout}, corners ${t.r}px`, `Home sections: ${(t.sections || []).join(", ")}`, `Menu: ${t.nav.join(", ")}`, `Photos uploaded: ${Object.keys(t.imgs || {}).length}`].join("\n");
+      $(".picked").classList.add("on");
+      $(".picked span").textContent = `Your design from the site editor${src ? " (based on " + src.name + ")" : ""}`;
+      form.elements.need.value = "Launch: template site ($799)";
+      form.elements.tpl.value = summary;
+      if (form.elements.biz && !form.elements.biz.value) form.elements.biz.value = t.brand;
+    } catch (e) { /* no saved design in this browser: the form still works without it */ }
   }
   if (plan) { const o = [...form.elements.need.options].find(o => o.text.toLowerCase().startsWith(plan.toLowerCase())); if (o) form.elements.need.value = o.text; }
   if (CONFIG.formEndpoint) $$("[data-formnote]").forEach(n => n.textContent = "We reply within one business day.");

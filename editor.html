@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site Editor · Seaside Haven Studios</title>
+<meta name="description" content="Design your own website in the browser. Start from any of our original templates, change colors, fonts, layout, text and photos, then download it or have us launch it.">
+<meta property="og:title" content="Site Editor · Seaside Haven Studios">
+<meta property="og:description" content="Design your own website in the browser. Start from any of our original templates, change colors, fonts, layout, text and photos, then download it or have us launch it.">
+<meta name="theme-color" content="#05080C">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Cormorant+Garamond:ital,wght@0,500;1,500&family=DM+Serif+Display&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Outfit:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Space+Grotesk:wght@500;700&family=Syne:wght@700;800&family=Geist:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/templates.css">
+<link rel="stylesheet" href="assets/editor.css">
+</head>
+<body>
+<header class="ed-top">
+  <a class="ed-brand" href="index.html" aria-label="Back to Seaside Haven Studios"><img src="assets/logo.svg" alt="" width="30" height="30"><span>Site editor</span></a>
+  <div class="ed-tools">
+    <div class="ed-seg" role="group" aria-label="Screen size">
+      <button type="button" data-dev="desktop" aria-pressed="true" title="Desktop"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h18v12H3zM8 20h8M12 16v4"/></svg><span>Desktop</span></button>
+      <button type="button" data-dev="tablet" aria-pressed="false" title="Tablet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18H6zM11 18h2"/></svg><span>Tablet</span></button>
+      <button type="button" data-dev="phone" aria-pressed="false" title="Phone"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8v20H8zM11 18h2"/></svg><span>Phone</span></button>
+    </div>
+    <label class="ed-page"><span>Page</span><select id="edPage" aria-label="Page"></select></label>
+    <button class="ed-ic" type="button" id="edUndo" aria-label="Undo" title="Undo (Ctrl+Z)" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3"/></svg></button>
+    <button class="ed-ic" type="button" id="edRedo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5M20 9H10a6 6 0 000 12h3"/></svg></button>
+  </div>
+  <div class="ed-actions">
+    <span class="ed-saved" id="edSaved" role="status">Saved</span>
+    <button class="ed-btn" type="button" id="edPreview" aria-pressed="false">Preview</button>
+    <button class="ed-btn" type="button" id="edExport">Download</button>
+    <a class="ed-btn ed-go" id="edLaunch" href="contact.html">Launch it for me</a>
+  </div>
+</header>
+
+<div class="ed-body">
+  <aside class="ed-side" id="edSide" aria-label="Editing tools">
+    <div class="ed-tabs" role="tablist">
+      <button type="button" role="tab" aria-selected="true" data-tab="templates">Templates</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="design">Design</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="sections">Sections</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="content">Content</button>
+    </div>
+
+    <section class="ed-panel on" data-panel="templates">
+      <p class="ed-hint">Pick a starting point. You can switch designs any time.</p>
+      <input class="ed-in" id="edTSearch" type="search" placeholder="Search: bakery, dentist, law…" aria-label="Search templates">
+      <select class="ed-in" id="edTCat" aria-label="Category"></select>
+      <label class="ed-check"><input type="checkbox" id="edKeep"> Keep my text and photos when I switch</label>
+      <div class="ed-tlist" id="edTList"></div>
+    </section>
+
+    <section class="ed-panel" data-panel="design">
+      <h3>Color palette</h3>
+      <div class="ed-pals" id="edPals"></div>
+      <details class="ed-more"><summary>Custom colors</summary><div class="ed-colors" id="edColors"></div></details>
+      <h3>Fonts</h3>
+      <div class="ed-fonts" id="edFonts"></div>
+      <label class="ed-check"><input type="checkbox" id="edUp"> Uppercase headlines</label>
+      <h3>Top section layout</h3>
+      <div class="ed-chips" id="edLayouts"></div>
+      <h3>Corners <output id="edRv"></output></h3>
+      <input type="range" id="edR" min="0" max="40" aria-label="Corner roundness">
+      <h3>Background art</h3>
+      <div class="ed-chips" id="edArt"></div>
+      <p class="ed-hint">Art fills the photo spots until you upload your own. Click any picture on the page to replace it.</p>
+    </section>
+
+    <section class="ed-panel" data-panel="sections">
+      <p class="ed-hint">These are the blocks on your home page, top to bottom. Move, remove or add them.</p>
+      <ol class="ed-secs" id="edSecs"></ol>
+      <h3>Add a section</h3>
+      <div class="ed-chips" id="edAdd"></div>
+    </section>
+
+    <section class="ed-panel" data-panel="content">
+      <p class="ed-hint"><b>Click any text on the page to edit it.</b> Click any picture to upload your own. Use the options here for the rest.</p>
+      <label class="ed-f">Business name<input class="ed-in" id="edBrand" type="text" maxlength="60"></label>
+      <div class="ed-f">Menu pages<div class="ed-navs" id="edNavs"></div></div>
+      <label class="ed-f">Main list style<select class="ed-in" id="edItems"><option value="cards">Cards with pictures</option><option value="menu">Menu with prices</option><option value="products">Product grid</option><option value="schedule">Schedule rows</option><option value="listings">Listings with big prices</option><option value="gallery">Photo gallery</option></select></label>
+      <h3>How many items</h3>
+      <div class="ed-counts" id="edCounts"></div>
+      <h3>Start over</h3>
+      <button class="ed-btn ed-wide" type="button" id="edReset">Reset this design</button>
+    </section>
+  </aside>
+
+  <main class="ed-stage" id="edStage">
+    <div class="ed-canvas editing" id="edCanvas"></div>
+    <div class="ed-secbar" id="edSecBar" hidden><span id="edSecName"></span><button type="button" data-act="up" aria-label="Move section up" title="Move up">↑</button><button type="button" data-act="down" aria-label="Move section down" title="Move down">↓</button><button type="button" data-act="del" aria-label="Remove section" title="Remove">✕</button></div>
+  </main>
+</div>
+
+<button class="ed-fab" type="button" id="edFab" aria-expanded="true" aria-controls="edSide">Tools</button>
+<div class="ed-pop" id="edPop" hidden></div>
+<input type="file" id="edFile" accept="image/*" hidden>
+<noscript><p style="padding:40px;color:#fff">The site editor needs JavaScript turned on.</p></noscript>
+<script src="assets/templates.js"></script>
+<script src="assets/editor.js"></script>
+</body>
+</html>
