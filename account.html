@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in · Seaside Haven Studios</title>
+<meta name="description" content="Sign in to build, publish and manage your website.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#05080C">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/dash.css">
+</head>
+<body>
+<header class="app-top"><div class="wrap"><a class="brand" href="index.html" aria-label="Seaside Haven Studios home"><img class="brand-logo" src="assets/logo.svg" alt=""><span class="brand-name">Seaside Haven <span>Studios</span></span></a><a class="btn btn-ghost btn-sm" href="editor.html">Try the editor</a></div></header>
+<main class="app-main" id="main">
+  <div class="wrap">
+    <div class="auth">
+      <h1 id="aT">Welcome back</h1>
+      <p class="lead" id="aL">Sign in to edit and publish your sites.</p>
+      <div class="panel">
+        <div class="auth-tabs" role="tablist" id="aTabs">
+          <button type="button" role="tab" aria-selected="true" data-mode="in">Sign in</button>
+          <button type="button" role="tab" aria-selected="false" data-mode="up">Create account</button>
+        </div>
+        <form class="f" id="aForm" novalidate>
+          <div class="msg" id="aMsg" role="status" hidden></div>
+          <label id="aEmailL">Email<input name="email" type="email" required autocomplete="email"></label>
+          <label id="aPassL">Password<input name="password" type="password" required minlength="8" autocomplete="current-password"></label>
+          <button class="btn btn-grad" type="submit" id="aGo">Sign in</button>
+          <button class="linkish" type="button" id="aForgot">Forgot your password?</button>
+        </form>
+      </div>
+      <p class="meta-line" style="text-align:center;margin-top:18px">Designing is free. You only pay when you want your site online or to download it.</p>
+    </div>
+  </div>
+</main>
+<noscript><p style="padding:40px;color:#fff;text-align:center">Signing in needs JavaScript turned on.</p></noscript>
+<script src="assets/config.js"></script>
+<script src="assets/cloud.js"></script>
+<script>
+(() => {
+  const $ = s => document.querySelector(s), form = $("#aForm"), msg = $("#aMsg"), go = $("#aGo");
+  const qp = new URLSearchParams(location.search);
+  /* only ever continue to a page on this site */
+  const next = /^[a-z]+\.html(\?[\w=&%.-]*)?$/.test(qp.get("next") || "") ? qp.get("next") : "dashboard.html";
+  let mode = qp.get("mode") === "up" ? "up" : "in";
+  const say = (text, kind = "err") => { msg.textContent = text; msg.className = "msg " + kind; msg.hidden = !text; };
+
+  function setMode(m) {
+    mode = m;
+    $("#aTabs").hidden = m === "reset" || m === "newpass";
+    $$tabs().forEach(b => b.setAttribute("aria-selected", b.dataset.mode === m));
+    $("#aEmailL").hidden = m === "newpass"; $("#aPassL").hidden = m === "reset"; $("#aForgot").hidden = m !== "in";
+    form.password.autocomplete = m === "in" ? "current-password" : "new-password";
+    const words = { in: ["Welcome back", "Sign in to edit and publish your sites.", "Sign in"], up: ["Create your account", "Save your designs, publish your site and manage it from any device.", "Create account"], reset: ["Reset your password", "We'll email you a link to choose a new password.", "Email me a link"], newpass: ["Choose a new password", "Pick a password with at least 8 characters.", "Save password"] }[m];
+    $("#aT").textContent = words[0]; $("#aL").textContent = words[1]; go.textContent = words[2]; say("");
+  }
+  const $$tabs = () => [...document.querySelectorAll("#aTabs button")];
+  $$tabs().forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+  $("#aForgot").addEventListener("click", () => setMode("reset"));
+
+  if (!Cloud.on) { setMode("in"); say("Customer accounts aren't switched on yet. You can still design for free in the editor.", "info"); go.disabled = true; return; }
+  if (Cloud.linkType() === "recovery") setMode("newpass");
+  else if (Cloud.signedIn()) { location.replace(next); return; }
+  else setMode(mode);
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const email = form.email.value.trim(), password = form.password.value;
+    if (mode !== "newpass" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return say("Please enter a valid email.");
+    if (mode !== "reset" && password.length < 8) return say("Please use a password with at least 8 characters.");
+    go.disabled = true; say("");
+    try {
+      if (mode === "in") { await Cloud.signIn(email, password); location.replace(next); return; }
+      if (mode === "up") {
+        if (await Cloud.signUp(email, password) === "in") { location.replace(next); return; }
+        say("Almost there. We sent a confirmation link to " + email + ". Open it to finish creating your account.", "ok");
+      }
+      if (mode === "reset") { await Cloud.resetPassword(email); say("If there's an account for " + email + ", a reset link is on its way.", "ok"); }
+      if (mode === "newpass") { await Cloud.setPassword(password); say("Password saved. Taking you to your sites…", "ok"); setTimeout(() => location.replace("dashboard.html"), 1000); return; }
+    } catch (err) { say(err.message); }
+    go.disabled = false;
+  });
+})();
+</script>
+</body>
+</html>

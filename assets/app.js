@@ -2,6 +2,14 @@
 
 document.documentElement.classList.remove("no-js");
 
+/* customer accounts (CONFIG.cloud): add a "My sites" link to the menus */
+if (CONFIG.cloud && CONFIG.cloud.url && CONFIG.cloud.key) {
+  const signedIn = (() => { try { return !!localStorage.getItem("shs-session"); } catch (e) { return false; } })();
+  const label = signedIn ? "My sites" : "Sign in", href = signedIn ? "dashboard.html" : "account.html";
+  document.querySelectorAll(".links, .mobile-menu").forEach(n => { const a = document.createElement("a"); a.href = href; a.textContent = label; n.appendChild(a); });
+  if ("serviceWorker" in navigator && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+
 /* every page opens at the top (unless the link points at a section) */
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 const toTop = () => { if (!location.hash) scrollTo({ top: 0, behavior: "instant" }); };
