@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My sites · Seaside Haven Studios</title>
+<meta name="description" content="Edit, publish and manage your websites.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#05080C">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/dash.css">
+</head>
+<body>
+<header class="app-top"><div class="wrap">
+  <a class="brand" href="index.html" aria-label="Seaside Haven Studios home"><img class="brand-logo" src="assets/logo.svg" alt=""><span class="brand-name">My sites</span></a>
+  <div class="who"><span id="dWho"></span><button class="btn btn-ghost btn-sm install" type="button" id="dInstall">Install app</button><button class="btn btn-ghost btn-sm" type="button" id="dAcct">Account</button><button class="btn btn-ghost btn-sm" type="button" id="dOut">Sign out</button></div>
+</div></header>
+<main class="app-main" id="main">
+  <div class="wrap">
+    <div class="app-head">
+      <div><h1>Your sites</h1><p>Edit, publish and manage everything in one place.</p></div>
+      <a class="btn btn-grad" href="editor.html?new=1">New site</a>
+    </div>
+    <div class="msg" id="dMsg" role="status" hidden style="margin-bottom:18px"></div>
+    <div class="sites" id="dSites" aria-live="polite"></div>
+  </div>
+</main>
+
+<!-- choose a plan -->
+<dialog class="dlg wide" id="dPlans" aria-labelledby="dPlansT">
+  <h2 id="dPlansT">Make it yours</h2>
+  <p>Designing is free. Pick how you'd like to keep <b id="dPlansName"></b>.</p>
+  <div class="plans">
+    <div class="plan-c best"><span class="tag">Lowest to start</span><h3>Pay monthly</h3><p class="price"><b id="dMoPrice"></b><span>/month</span></p>
+      <ul><li>Your site goes online right away</li><li>Free address, or connect your own domain</li><li>Secure (SSL), fast and backed up</li><li>Edit and publish any time, cancel any time</li></ul>
+      <a class="btn btn-grad" id="dPayMo" href="#">Start monthly</a></div>
+    <div class="plan-c"><h3>Buy it outright</h3><p class="price"><b id="dBuyPrice"></b><span>one time</span></p>
+      <ul><li>Download your whole site as one file</li><li>Host it anywhere you like</li><li>No monthly fee, yours to keep</li></ul>
+      <a class="btn btn-ghost" id="dPayBuy" href="#">Buy it</a></div>
+  </div>
+  <p class="meta-line" id="dPlansNote" style="margin-top:14px"></p>
+  <button class="linkish dlg-x" type="button" data-close>Not now</button>
+</dialog>
+
+<!-- site settings -->
+<dialog class="dlg" id="dSet" aria-labelledby="dSetT">
+  <h2 id="dSetT">Site settings</h2>
+  <form class="f" id="dSetForm" novalidate>
+    <div class="msg" id="dSetMsg" role="status" hidden></div>
+    <label>Site name<input name="name" maxlength="80" required></label>
+    <label>Free address<div class="addr-in"><input name="slug" maxlength="40" autocapitalize="off" spellcheck="false" required><span id="dSetBase"></span></div></label>
+    <button class="btn btn-grad" type="submit">Save changes</button>
+  </form>
+  <h3>Your own domain</h3>
+  <p class="meta-line" id="dDomNote">Already own a domain like yourbusiness.com? Connect it here. Included with the monthly plan.</p>
+  <form class="f" id="dDomForm" novalidate>
+    <div class="msg" id="dDomMsg" role="status" hidden></div>
+    <label>Domain<input name="domain" placeholder="yourbusiness.com" autocapitalize="off" spellcheck="false"></label>
+    <div class="row"><button class="btn btn-ghost" type="submit">Connect domain</button><button class="linkish" type="button" id="dDomOff" hidden>Disconnect</button></div>
+  </form>
+  <div id="dDns" hidden>
+    <p class="meta-line" style="margin-top:12px">Add these records where you bought your domain. Changes can take up to a day to show up.</p>
+    <table class="dns"><thead><tr><th>Type</th><th>Name</th><th>Value</th></tr></thead><tbody id="dDnsRows"></tbody></table>
+  </div>
+  <h3 class="danger">Delete site</h3>
+  <p class="meta-line">Takes the site offline and deletes your design. This can't be undone. Cancel any monthly plan in billing first.</p>
+  <div class="row" style="margin-top:10px"><button class="btn btn-danger btn-sm" type="button" id="dDel">Delete this site</button></div>
+  <button class="linkish dlg-x" type="button" data-close>Close</button>
+</dialog>
+
+<!-- name a new site (from the editor) -->
+<dialog class="dlg" id="dClaim" aria-labelledby="dClaimT">
+  <h2 id="dClaimT">Save your site</h2>
+  <p>Pick a free web address. You can change it, or connect your own domain, any time.</p>
+  <form class="f" id="dClaimForm" novalidate>
+    <div class="msg" id="dClaimMsg" role="status" hidden></div>
+    <label>Web address<div class="addr-in"><input name="slug" maxlength="40" autocapitalize="off" spellcheck="false" required><span id="dClaimBase"></span></div></label>
+    <button class="btn btn-grad" type="submit">Save to my account</button>
+  </form>
+  <button class="linkish dlg-x" type="button" data-close>Cancel</button>
+</dialog>
+
+<!-- account -->
+<dialog class="dlg" id="dAcctDlg" aria-labelledby="dAcctT">
+  <h2 id="dAcctT">Account</h2>
+  <form class="f" id="dEmailForm" novalidate>
+    <div class="msg" id="dEmailMsg" role="status" hidden></div>
+    <label>Email<input name="email" type="email" autocomplete="email" required></label>
+    <button class="btn btn-ghost" type="submit">Change email</button>
+  </form>
+  <form class="f" id="dPassForm" novalidate>
+    <div class="msg" id="dPassMsg" role="status" hidden></div>
+    <label>New password<input name="password" type="password" minlength="8" autocomplete="new-password" required></label>
+    <button class="btn btn-ghost" type="submit">Change password</button>
+  </form>
+  <h3>Billing</h3>
+  <p class="meta-line">Update your card, see receipts or cancel a plan.</p>
+  <div class="row" style="margin-top:10px"><a class="btn btn-ghost btn-sm" id="dPortal" href="#" target="_blank" rel="noopener">Manage billing</a></div>
+  <button class="linkish dlg-x" type="button" data-close>Close</button>
+</dialog>
+
+<noscript><p style="padding:40px;color:#fff;text-align:center">Your dashboard needs JavaScript turned on.</p></noscript>
+<script src="assets/config.js"></script>
+<script src="assets/cloud.js"></script>
+<script src="assets/dashboard.js"></script>
+</body>
+</html>

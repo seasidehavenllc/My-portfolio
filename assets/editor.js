@@ -51,6 +51,19 @@
       catch (e2) { el.textContent = "Not saved"; }
     }
   }
+  /* With accounts on (CONFIG.cloud) and a site open (?site=<id>), every save also goes to the account. */
+  let siteId = null, siteRow = null, cloudT = 0, cloudBusy = false, cloudDirty = false;
+  function cloudSave() {
+    if (!siteId) return;
+    cloudDirty = true; clearTimeout(cloudT);
+    cloudT = setTimeout(async () => {
+      if (cloudBusy) return cloudSave();
+      cloudBusy = true; cloudDirty = false;
+      try { await Cloud.saveSite(siteId, { design: S, name: S.t.brand.slice(0, 80) || "My site" }); if (!cloudDirty) $("#edSaved").textContent = "Saved to your account"; }
+      catch (e) { $("#edSaved").textContent = "Not saved online"; }
+      cloudBusy = false;
+    }, 1500);
+  }
   function load() {
     try {
       const s = JSON.parse(localStorage.getItem(KEY));
@@ -60,7 +73,7 @@
   }
   function commit() {
     hist = hist.slice(0, hi + 1); hist.push(snap(S)); if (hist.length > 60) hist.shift();
-    hi = hist.length - 1; save(); syncHist();
+    hi = hist.length - 1; save(); syncHist(); cloudSave();
   }
   function travel(d) {
     if (!hist[hi + d]) return;
@@ -377,7 +390,8 @@
      Note: this site has no server, so the download unlock is checked in the browser only. */
   const PAID = "shs-editor-paid", EP = CONFIG.editorPrice || {}, buy = +EP.buy || 0, monthly = +EP.monthly || 0, payDlg = $("#edPay");
   const isPaid = () => { if (!buy) return true; try { return localStorage.getItem(PAID) === "1"; } catch (e) { return false; } };
-  const labelExport = () => { $("#edExport").textContent = isPaid() ? "Download" : "Get my site"; };
+  const CLOUD = typeof Cloud !== "undefined" && Cloud.on;
+  const labelExport = () => { $("#edExport").textContent = CLOUD ? (siteRow && siteRow.plan !== "free" ? (siteRow.plan === "monthly" ? "Publish" : "Save for download") : "Get my site") : isPaid() ? "Download" : "Get my site"; };
   const stripeRef = () => "editor-" + S.src.replace(/[^A-Za-z0-9_-]/g, "_");
   const checkout = (link, plan) => {
     save();
@@ -387,7 +401,14 @@
   payDlg.addEventListener("click", e => { if (e.target === payDlg) payDlg.close(); });
   $("#edPayGo").addEventListener("click", () => checkout(CONFIG.pay.editorBuy, "Download"));
   $("#edPayMo").addEventListener("click", () => checkout(CONFIG.pay.editorMonthly, "Hosted"));
-  $("#edExport").addEventListener("click", () => {
+  $("#edExport").addEventListener("click", async () => {
+    if (CLOUD) {
+      /* accounts are on: the dashboard handles plans, publishing and downloads */
+      save();
+      if (!siteId) { location.href = "dashboard.html?claim=1"; return; }
+      if (siteRow && siteRow.plan === "free") { clearTimeout(cloudT); try { await Cloud.saveSite(siteId, { design: S }); } catch (e) { /* the dashboard shows the last saved copy */ } location.href = "dashboard.html?plans=" + siteId; return; }
+      return publish();
+    }
     if (isPaid()) return exportSite();
     $("#edBuyPrice").textContent = "$" + buy; $("#edMoPrice").textContent = "$" + monthly;
     $("#edPayGo").textContent = CONFIG.pay.editorBuy ? `Buy for $${buy}` : `Request it · $${buy}`;
@@ -419,9 +440,26 @@
     } catch (err) { toast("That file isn't a design saved from this editor."); }
   });
 
+  async function publish() {
+    const html = await buildSite();
+    if (!html) return toast("Couldn't prepare your site. Please try again.");
+    const btn = $("#edExport"); btn.disabled = true;
+    try {
+      clearTimeout(cloudT);
+      await Cloud.saveSite(siteId, { design: S, name: S.t.brand.slice(0, 80) || "My site", html, published_at: new Date().toISOString() });
+      toast(siteRow.plan === "monthly" ? "Published. Your changes are live within a minute." : "Saved. Your download is ready in your dashboard.");
+    } catch (e) { toast(/too large|payload|8000000|10000000/i.test(e.message || "") ? "Your photos are too large to publish. Try smaller photos." : "Couldn't publish. Check your connection and try again."); }
+    btn.disabled = false;
+  }
   async function exportSite() {
+    const html = await buildSite();
+    if (!html) return toast("Couldn't prepare the download. Please try again.");
+    saveAs(slug() + ".html", html, "text/html");
+    toast("Downloaded. Open the file in any browser to see your site.");
+  }
+  async function buildSite() {
     const css = await templateCss();
-    if (!css) return toast("Couldn't prepare the download. Please try again.");
+    if (!css) return "";
     const fams = [...new Set([S.t.fh, S.t.fb].map(f => (f.split("'")[1] || "").trim()))].map(n => FONT_URL[n]).filter(Boolean);
     const pages = [0, 1, 2, 3, 4].map(i => `<div class="pg${i ? "" : " on"}">${tpRender(S.t, S.P, i).replace(/ data-(e|sec|img)="[^"]*"| data-rich/g, "")}</div>`).join("\n");
     const html = `<!doctype html>
@@ -452,21 +490,39 @@ document.addEventListener("click",function(e){
 <\/script>
 </body>
 </html>`;
-    saveAs(slug() + ".html", html, "text/html");
-    toast("Downloaded. Open the file in any browser to see your site.");
+    return html;
   }
 
   /* ---------- go ---------- */
   const qp = new URLSearchParams(location.search), want = qp.get("t"), saved = load();
   if (want && tplGet(want) && (!saved || saved.src !== tplGet(want).id)) {
     S = !saved || confirm(`Start a new design from the ${tplGet(want).name} template? This replaces the design you were working on.`) ? fresh(want, qp.get("p") == null ? null : +qp.get("p")) : saved;
-  } else S = saved || fresh("harbor");
+  } else S = qp.has("new") ? fresh("harbor") : saved || fresh("harbor");
   if (!Array.isArray(S.t.sections) || !S.t.sections.length) S.t.sections = tpExtra(S.t).sections.slice();
   /* back from Stripe checkout: unlock and hand over the file */
   const justPaid = /^cs_(live|test)_[A-Za-z0-9]{10,}$/.test(qp.get("paid") || "");
   if (justPaid) { try { localStorage.setItem(PAID, "1"); } catch (e) { /* private mode: the download below still runs */ } }
-  if (want || qp.has("paid")) history.replaceState(null, "", location.pathname);
+  if (want || qp.has("paid") || qp.has("new")) history.replaceState(null, "", location.pathname);
   commit(); listTemplates(); syncPanels(); draw(false); labelExport();
+  /* opened from the dashboard: swap in the site saved in the account */
+  const wantSite = qp.get("site");
+  if (CLOUD) {
+    $("#edLaunch").textContent = "My sites"; $("#edLaunch").href = "dashboard.html";
+    if (wantSite) (async () => {
+      try {
+        const user = await Cloud.user();
+        if (!user) { location.href = "account.html?next=" + encodeURIComponent("editor.html?site=" + wantSite); return; }
+        const row = await Cloud.getSite(wantSite);
+        if (!row || !validDesign(row.design)) throw 0;
+        S = { src: tplGet(row.design.src) ? row.design.src : "harbor", t: row.design.t, P: row.design.P };
+        if (!Array.isArray(S.t.sections) || !S.t.sections.length) S.t.sections = tpExtra(S.t).sections.slice();
+        hist = []; hi = -1; pg = 0; commit(); siteId = row.id; siteRow = row;
+        syncPanels(); draw(false); labelExport(); tab("design");
+        $("#edSaved").textContent = "Saved to your account";
+        if (qp.get("publish")) publish();
+      } catch (e) { toast("Couldn't open that site. Opening your dashboard."); setTimeout(() => { location.href = "dashboard.html"; }, 1600); }
+    })();
+  }
   if (justPaid) { toast("Payment received. Thank you! Your download is starting."); setTimeout(exportSite, 900); }
   if (saved && S === saved) tab("design");
 })();

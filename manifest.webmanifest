@@ -1,0 +1,21 @@
+{
+  "name": "Seaside Haven Site Builder",
+  "short_name": "Site Builder",
+  "description": "Design, publish and manage your website from your phone or computer.",
+  "id": "./dashboard.html",
+  "start_url": "./dashboard.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05080C",
+  "theme_color": "#05080C",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "New site", "url": "./editor.html?new=1" },
+    { "name": "My sites", "url": "./dashboard.html" }
+  ]
+}
