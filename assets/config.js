@@ -7,15 +7,15 @@ const CONFIG = {
      each package. Any left empty keeps its "get a quote" button instead.
      In Stripe, set each link's after-payment page to <your site>/welcome.html */
   pay: {
-    launch: "",      // Launch template site, $799 in full
-    business: "",    // Business, $1,250 deposit
-    growth: "",      // Growth, $2,500 deposit
-    polish: "",      // Polish, $299 in full
-    revamp: "",      // Revamp, $750 deposit
-    revampPlus: "",  // Revamp Plus, $1,500 deposit
-    careHost: "",    // Host plan, $29/month subscription
-    careCare: "",    // Care plan, $59/month subscription
-    careGrow: "",    // Grow plan, $149/month subscription
+    launch: "",      // Launch template site, $449 in full
+    business: "",    // Business, $750 deposit
+    growth: "",      // Growth, $1,500 deposit
+    polish: "",      // Polish, $199 in full
+    revamp: "",      // Revamp, $450 deposit
+    revampPlus: "",  // Revamp Plus, $900 deposit
+    careHost: "",    // Host plan, $19/month subscription
+    careCare: "",    // Care plan, $39/month subscription
+    careGrow: "",    // Grow plan, $99/month subscription
     editorBuy: "",   // Site editor, buy outright (one-time, price below). In Stripe, set this link's
                      // after-payment redirect to <your site>/dashboard.html?paid=1 when accounts are on
                      // (CONFIG.cloud), otherwise <your site>/editor.html?paid={CHECKOUT_SESSION_ID}

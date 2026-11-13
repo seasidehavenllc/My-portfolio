@@ -27,7 +27,7 @@ Static site (plain HTML, CSS and JS, no build step) for Seaside Haven Studios, t
 
 Everything works without setup: buy buttons fall back to "get a quote", and forms open the visitor's email app. To automate:
 
-1. **Stripe payment links.** In Stripe, create a Payment Link for each package: Launch $799, Polish $299 (paid in full); Business $1,250, Growth $2,500, Revamp $750, Revamp Plus $1,500 (50% deposits); Host $29/mo, Care $59/mo, Grow $149/mo (subscriptions). In each link's settings, set the confirmation page to redirect to `https://<your site>/welcome.html`. Paste each link into `CONFIG.pay` in `assets/config.js`.
+1. **Stripe payment links.** In Stripe, create a Payment Link for each package: Launch $449, Polish $199 (paid in full); Business $750, Growth $1,500, Revamp $450, Revamp Plus $900 (50% deposits); Host $19/mo, Care $39/mo, Grow $99/mo (subscriptions). In each link's settings, set the confirmation page to redirect to `https://<your site>/welcome.html`. Paste each link into `CONFIG.pay` in `assets/config.js`.
 2. **Form inbox.** Create a form at a service such as Formspree and paste its endpoint into `CONFIG.formEndpoint`. Quote and onboarding forms then arrive in your inbox automatically.
 3. **Template orders.** When a customer buys from a template preview, the template and palette show up in Stripe as the payment's client reference ID (for example `harbor-midnight`, or `harbor~7.3.2-midnight` for a variation).
 4. **Site editor plans.** Designing is free; visitors pay to keep the site, in one of two ways. Both prices are in `CONFIG.editorPrice` in `assets/config.js` and update everywhere when you change them.
