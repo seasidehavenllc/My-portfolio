@@ -240,7 +240,7 @@ function openPreview(id) {
   const t = tplById(id), allPals = tplAllPals(t); dlg._t = t; dlg._pal = t.p0 || 0; dlg._pg = 0; dlg._dev = dlg._dev || "desktop";
   $("#pvPage").innerHTML = ["Home", ...t.nav].map((n, i) => `<option value="${i}">${n}</option>`).join("");
   $("#pvName").textContent = t.name + " template" + (t.vname ? " · " + t.vname : "");
-  $("#pvInd").textContent = t.industry + " · included in Launch, from $799";
+  $("#pvInd").textContent = t.industry + " · included in Launch, from $449";
   const pals = $("#pvPals");
   pals.innerHTML = allPals.map((q, i) => `<button type="button" aria-label="${q.n} palette" title="${q.n}" aria-pressed="${i === dlg._pal}" style="background:linear-gradient(135deg,${q.bg} 50%,${q.ac} 50%)"></button>`).join("");
   $$("button", pals).forEach((b, i) => b.addEventListener("click", () => { dlg._pal = i; $$("button", pals).forEach(x => x.setAttribute("aria-pressed", x === b)); dlg._draw(); }));
@@ -252,7 +252,7 @@ function openPreview(id) {
     mountScaled(dev, dlg._t, allPals[dlg._pal], w, true, dlg._pg);
     const ref = `${dlg._t.id}-${allPals[dlg._pal].n}`.toLowerCase(), go = $("#pvGo");
     $("#pvEdit").href = `editor.html?t=${encodeURIComponent(dlg._t.id)}&p=${dlg._pal}`;
-    if (CONFIG.pay.launch) { go.href = `${CONFIG.pay.launch}?client_reference_id=${ref}`; go.textContent = "Buy this template · $799"; }
+    if (CONFIG.pay.launch) { go.href = `${CONFIG.pay.launch}?client_reference_id=${ref}`; go.textContent = "Buy this template · $449"; }
     else go.href = `contact.html?template=${encodeURIComponent(dlg._t.id)}&palette=${encodeURIComponent(allPals[dlg._pal].n)}`;
   }
   dlg._draw = draw;
@@ -326,19 +326,19 @@ function openPreview(id) {
 (() => {
   const root = $("#est"); if (!root) return;
   const TIERS = [
-    { max: 5,  name: "Launch",   base: 799,  incl: 5,  weeks: "about 1 week",   care: 29 },
-    { max: 10, name: "Business", base: 2499, incl: 10, weeks: "3 to 4 weeks",  care: 59 },
-    { max: 20, name: "Growth",   base: 4999, incl: 20, weeks: "5 to 7 weeks",  care: 149 },
-    { max: 99, name: "Custom",   base: 9500, incl: 30, weeks: "8 to 12 weeks", care: 149 }
+    { max: 5,  name: "Launch",   base: 449,  incl: 5,  weeks: "about 1 week",   care: 19 },
+    { max: 10, name: "Business", base: 1499, incl: 10, weeks: "3 to 4 weeks",  care: 39 },
+    { max: 20, name: "Growth",   base: 2999, incl: 20, weeks: "5 to 7 weeks",  care: 99 },
+    { max: 99, name: "Custom",   base: 5999, incl: 30, weeks: "8 to 12 weeks", care: 99 }
   ];
   const pages = $("#pages"), pv = $("#pagesVal"), feats = $$("#feats button"), rev = $("#revamp"), rush = $("#rush");
   function calc() {
     const p = +pages.value; pv.textContent = p >= 30 ? "30+" : p;
     const on = feats.filter(b => b.getAttribute("aria-pressed") === "true");
     let tier = TIERS.find(t => p <= t.max);
-    if (on.some(b => b.dataset.tier === "growth") && tier.base < 4999) tier = TIERS[2];
+    if (on.some(b => b.dataset.tier === "growth") && tier.base < 2999) tier = TIERS[2];
     if (on.some(b => b.dataset.tier === "custom")) tier = TIERS[3];
-    const extra = Math.max(0, p - tier.incl) * 99;
+    const extra = Math.max(0, p - tier.incl) * 69;
     let build = tier.base + extra;
     const add = on.reduce((s, b) => s + +b.dataset.v, 0);
     const isRev = rev.getAttribute("aria-pressed") === "true";
@@ -398,13 +398,13 @@ function openPreview(id) {
   const box = $("#chat"); if (!box) return;
   const form = $("#chatForm"), input = $("#chatIn");
   const A = [
-    [/price|cost|much|cheap|budget/i, "Websites start at $799 for one of our templates customized to your brand. Fully custom sites start at $2,499, and online stores at $4,999. Want me to send the full price list?"],
-    [/\bold\b|redo|revamp|refresh|redesign|existing|polish/i, "Yes! If you already have a site, our revamp pricing is 40% off a new build since we reuse your content. A quick polish starts at just $299."],
+    [/price|cost|much|cheap|budget/i, "Websites start at $449 for one of our templates customized to your brand. Fully custom sites start at $1,499, and online stores at $2,999. Want me to send the full price list?"],
+    [/\bold\b|redo|revamp|refresh|redesign|existing|polish/i, "Yes! If you already have a site, our revamp pricing is 40% off a new build since we reuse your content. A quick polish starts at just $199."],
     [/fast|long|time|when|week/i, "Template sites launch in about a week. Custom builds take 3 to 4 weeks, and stores 5 to 7."],
     [/template|look|design|example/i, `We have ${typeof TEMPLATES !== "undefined" ? TEMPLATES.length : 54} original templates, from cafés to law firms, and you can restyle any of them yourself in our free site editor.`],
     [/book|call|talk|meet|schedule/i, "Happy to! I have openings Tuesday at 10:00 or Thursday at 2:30. Which works better?"],
     [/\b(tue|thu|tuesday|thursday|10|10:00|2:30)\b/i, "You're booked! You'll get a text confirmation and a calendar invite in a moment. 🎉"],
-    [/host|domain|email|monthly/i, "Hosting & care starts at $29/month and covers hosting, SSL, backups, security and small edits. You always own your domain."],
+    [/host|domain|email|monthly/i, "Hosting & care starts at $19/month and covers hosting, SSL, backups, security and small edits. You always own your domain."],
     [/wix|squarespace|diy/i, "Wix and Squarespace are great DIY tools. We design and build it for you, and our prices start in the same range as hiring a pro on those platforms."],
     [/\b(hi|hello|hey)\b/i, "Hey there! 👋 I'm a demo of the chat assistant we can add to your site. Ask me about prices, timelines or revamps."]
   ];
@@ -485,9 +485,9 @@ function openPreview(id) {
     const v = Math.max(5, 100 - hit);
     g.style.setProperty("--v", v); $("b", g).textContent = v;
     g.style.setProperty("--gc", v >= 80 ? "var(--green)" : v >= 55 ? "var(--sun)" : "var(--coral)");
-    if (v >= 80) { h.textContent = "Looking healthy"; p.textContent = "A Polish ($299) will tighten up speed, mobile and SEO details."; cta.textContent = "Book a Polish"; cta.href = "contact.html?plan=Polish"; }
-    else if (v >= 55) { h.textContent = "Ready for a refresh"; p.textContent = "A Revamp keeps your content and rebuilds the design. From $1,499, 40% off a new build."; cta.textContent = "Get a Revamp quote"; cta.href = "contact.html?plan=Revamp"; }
-    else { h.textContent = "Costing you customers"; p.textContent = "Your site is likely losing visitors. A full Revamp, from $1,499, is the fastest fix."; cta.textContent = "Claim revamp pricing"; cta.href = "contact.html?plan=Revamp"; }
+    if (v >= 80) { h.textContent = "Looking healthy"; p.textContent = "A Polish ($199) will tighten up speed, mobile and SEO details."; cta.textContent = "Book a Polish"; cta.href = "contact.html?plan=Polish"; }
+    else if (v >= 55) { h.textContent = "Ready for a refresh"; p.textContent = "A Revamp keeps your content and rebuilds the design. From $899, 40% off a new build."; cta.textContent = "Get a Revamp quote"; cta.href = "contact.html?plan=Revamp"; }
+    else { h.textContent = "Costing you customers"; p.textContent = "Your site is likely losing visitors. A full Revamp, from $899, is the fastest fix."; cta.textContent = "Claim revamp pricing"; cta.href = "contact.html?plan=Revamp"; }
   }
   boxes.forEach(b => b.addEventListener("change", calc)); calc();
 })();
@@ -500,7 +500,7 @@ function openPreview(id) {
     const t = tplById(tid), pal = qp.get("palette") || "1";
     $(".picked").classList.add("on");
     $(".picked span").textContent = `${t.name} template (${t.industry})${t.vname ? ", " + t.vname : ""}, ${/^\d+$/.test(pal) ? "palette " + pal : pal + " palette"}`;
-    form.elements.need.value = "Launch: template site ($799)";
+    form.elements.need.value = "Launch: template site ($449)";
     form.elements.tpl.value = `${t.name}${t.vname ? " (" + t.vname + ")" : ""}, palette ${pal}`;
   }
   /* arriving from the site editor: describe the visitor's own design so the studio can rebuild it */
@@ -514,7 +514,7 @@ function openPreview(id) {
       const label = `Your design from the site editor${src ? " (based on " + src.name + ")" : ""}`, hidden = form.elements.tpl.type === "hidden";
       if ($(".picked")) { $(".picked").classList.add("on"); $(".picked span").textContent = label; }
       const hosted = [...form.elements.need.options].find(o => o.dataset.edprice === "monthly");
-      form.elements.need.value = !plan && hosted && form.dataset.kind === "onboarding" ? hosted.text : "Launch: template site ($799)";
+      form.elements.need.value = !plan && hosted && form.dataset.kind === "onboarding" ? hosted.text : "Launch: template site ($449)";
       form.elements.tpl.value = hidden ? summary : label;
       if (form.elements.biz && !form.elements.biz.value) form.elements.biz.value = t.brand;
       /* the design itself lives in this browser, so give the visitor a file to send along */
