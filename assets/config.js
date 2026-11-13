@@ -26,10 +26,13 @@ const CONFIG = {
 
   /* Site editor prices. Designing is always free; these are what a visitor pays to keep the site.
      Change a number and it changes everywhere on the site.
-       monthly: you host their site for them, billed monthly. 7 is 40% of Wix's cheapest plan ($17 a month).
-       buy:     they pay once and download the site file to host anywhere. 79 is about 40% of a year of
-                that same Wix plan. Set buy to 0 to make the download free. */
-  editorPrice: { monthly: 7, buy: 79 },
+     Set below every major builder (checked November 2026):
+       Wix Light $17/month yearly ($24 month to month), Squarespace Basic $19 ($25), GoDaddy $9.99 ($16.99),
+       Hostinger $2.99 intro that renews at $10.99, WordPress.com Personal $4 yearly ($5 after year one).
+       monthly: we host their site. 5 is under a third of Wix's cheapest plan, with no yearly contract.
+       buy:     they pay once and download the site file. 49 is less than three months of Wix Light.
+                Set buy to 0 to make the download free. */
+  editorPrice: { monthly: 5, buy: 49 },
 
   /* Customer accounts and automatic publishing (see backend/README.md).
      Leave url empty and the site works without accounts, exactly as before.
