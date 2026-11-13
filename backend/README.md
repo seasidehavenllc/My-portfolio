@@ -28,7 +28,7 @@ In the Supabase dashboard for **site-builder**, open Authentication, URL Configu
 Supabase's built-in email only sends a few emails an hour, which is fine for testing. Before launch, set up your own email sender under Authentication, Emails, SMTP Settings (Resend, Postmark or similar) so sign-up and password emails always arrive.
 
 ### 2. Stripe
-1. Create two Payment Links: a **$7 monthly subscription** and a **$79 one-time payment**.
+1. Create two Payment Links: a **$5 monthly subscription** and a **$49 one-time payment** (the prices in `CONFIG.editorPrice`).
 2. Set each link's after-payment page to `https://yourdomain.com/dashboard.html?paid=1`.
 3. Paste them into `CONFIG.pay.editorMonthly` and `CONFIG.pay.editorBuy` in `assets/config.js`.
 4. Turn on the customer portal (Settings, Billing, Customer portal) and paste its link into `CONFIG.cloud.portal`.
