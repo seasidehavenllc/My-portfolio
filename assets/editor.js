@@ -367,7 +367,59 @@
     const sheet = [...document.styleSheets].find(s => (s.href || "").includes("templates.css"));
     return sheet ? [...sheet.cssRules].map(r => r.cssText).join("\n") : "";
   }
-  $("#edExport").addEventListener("click", async () => {
+  /* Designing is free. Keeping the site is paid, two ways (prices in CONFIG.editorPrice):
+       buy      one payment, then the visitor downloads the site file. With a Stripe link in
+                CONFIG.pay.editorBuy, Stripe sends them back to editor.html?paid=<checkout session id>,
+                which unlocks the download in this browser.
+       monthly  the studio hosts the site. With a Stripe link in CONFIG.pay.editorMonthly, Stripe sends
+                them to welcome.html?design=1, where they hand over their design.
+     Without a link, either choice goes to the quote form with the design attached.
+     Note: this site has no server, so the download unlock is checked in the browser only. */
+  const PAID = "shs-editor-paid", EP = CONFIG.editorPrice || {}, buy = +EP.buy || 0, monthly = +EP.monthly || 0, payDlg = $("#edPay");
+  const isPaid = () => { if (!buy) return true; try { return localStorage.getItem(PAID) === "1"; } catch (e) { return false; } };
+  const labelExport = () => { $("#edExport").textContent = isPaid() ? "Download" : "Get my site"; };
+  const stripeRef = () => "editor-" + S.src.replace(/[^A-Za-z0-9_-]/g, "_");
+  const checkout = (link, plan) => {
+    save();
+    location.href = link ? link + (link.includes("?") ? "&" : "?") + "client_reference_id=" + stripeRef() : `contact.html?template=${encodeURIComponent(S.src)}&design=1&plan=${plan}`;
+  };
+  $("#edPayX").addEventListener("click", () => payDlg.close());
+  payDlg.addEventListener("click", e => { if (e.target === payDlg) payDlg.close(); });
+  $("#edPayGo").addEventListener("click", () => checkout(CONFIG.pay.editorBuy, "Download"));
+  $("#edPayMo").addEventListener("click", () => checkout(CONFIG.pay.editorMonthly, "Hosted"));
+  $("#edExport").addEventListener("click", () => {
+    if (isPaid()) return exportSite();
+    $("#edBuyPrice").textContent = "$" + buy; $("#edMoPrice").textContent = "$" + monthly;
+    $("#edPayGo").textContent = CONFIG.pay.editorBuy ? `Buy for $${buy}` : `Request it · $${buy}`;
+    $("#edPayMo").textContent = CONFIG.pay.editorMonthly ? `Start for $${monthly}/month` : `Request it · $${monthly}/month`;
+    $(".ed-plan.best").hidden = !monthly;
+    $("#edPayLaunch").href = $("#edLaunch").href;
+    payDlg.showModal();
+  });
+
+  /* ---------- design files: a backup the visitor can keep, and how a design reaches the studio ---------- */
+  const slug = () => S.t.brand.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "my-site";
+  function saveAs(name, text, type) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+  const validDesign = d => d && d.t && d.P && Array.isArray(d.t.nav) && Array.isArray(d.t.list) && Array.isArray(d.t.stats) && Array.isArray(d.t.feats) && Array.isArray(d.t.quote) && d.t.art && typeof d.t.brand === "string" && typeof d.P.bg === "string";
+  $("#edSaveFile").addEventListener("click", () => { saveAs(slug() + "-design.json", JSON.stringify(S), "application/json"); toast("Design file saved."); });
+  $("#edOpenFile").addEventListener("click", () => { const f = $("#edDesignFile"); f.value = ""; f.click(); });
+  $("#edDesignFile").addEventListener("change", async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      if (!validDesign(d)) throw 0;
+      S = { src: tplGet(d.src) ? d.src : "harbor", t: d.t, P: d.P };
+      if (!Array.isArray(S.t.sections) || !S.t.sections.length) S.t.sections = tpExtra(S.t).sections.slice();
+      pg = 0; commit(); syncPanels(); draw(false); toast("Design opened.");
+    } catch (err) { toast("That file isn't a design saved from this editor."); }
+  });
+
+  async function exportSite() {
     const css = await templateCss();
     if (!css) return toast("Couldn't prepare the download. Please try again.");
     const fams = [...new Set([S.t.fh, S.t.fb].map(f => (f.split("'")[1] || "").trim()))].map(n => FONT_URL[n]).filter(Boolean);
@@ -400,13 +452,9 @@ document.addEventListener("click",function(e){
 <\/script>
 </body>
 </html>`;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-    a.download = (S.t.brand.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "my-site") + ".html";
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    saveAs(slug() + ".html", html, "text/html");
     toast("Downloaded. Open the file in any browser to see your site.");
-  });
+  }
 
   /* ---------- go ---------- */
   const qp = new URLSearchParams(location.search), want = qp.get("t"), saved = load();
@@ -414,7 +462,11 @@ document.addEventListener("click",function(e){
     S = !saved || confirm(`Start a new design from the ${tplGet(want).name} template? This replaces the design you were working on.`) ? fresh(want, qp.get("p") == null ? null : +qp.get("p")) : saved;
   } else S = saved || fresh("harbor");
   if (!Array.isArray(S.t.sections) || !S.t.sections.length) S.t.sections = tpExtra(S.t).sections.slice();
-  if (want) history.replaceState(null, "", location.pathname);
-  commit(); listTemplates(); syncPanels(); draw(false);
+  /* back from Stripe checkout: unlock and hand over the file */
+  const justPaid = /^cs_(live|test)_[A-Za-z0-9]{10,}$/.test(qp.get("paid") || "");
+  if (justPaid) { try { localStorage.setItem(PAID, "1"); } catch (e) { /* private mode: the download below still runs */ } }
+  if (want || qp.has("paid")) history.replaceState(null, "", location.pathname);
+  commit(); listTemplates(); syncPanels(); draw(false); labelExport();
+  if (justPaid) { toast("Payment received. Thank you! Your download is starting."); setTimeout(exportSite, 900); }
   if (saved && S === saved) tab("design");
 })();
