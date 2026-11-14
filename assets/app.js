@@ -30,12 +30,7 @@ function toast(text) {
   clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2600);
 }
 
-/* checkout buttons: switch to Stripe once a payment link is configured */
-$$("[data-pay]").forEach(a => {
-  const url = CONFIG.pay[a.dataset.pay]; if (!url) return;
-  a.href = url; a.textContent = a.dataset.paytext;
-  a.insertAdjacentHTML("afterend", `<a class="quote-alt" href="contact.html?plan=${encodeURIComponent(a.closest(".plan")?.querySelector("h3")?.textContent || "")}">Questions first? Get a free quote</a>`);
-});
+/* checkout buttons (data-pay) are handled by assets/pay.js */
 
 /* header, scroll progress, mobile menu */
 (() => {
@@ -236,6 +231,14 @@ function openPreview(id) {
     top.addEventListener("click", () => stage.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }));
     $("#pvPage").addEventListener("change", e => go(+e.target.value));
     liveNav($("#pvDev"), go, $(".pv-stage", dlg));
+    $("#pvGo").addEventListener("click", async e => {
+      if (typeof Pay === "undefined" || !Pay.on) return;
+      e.preventDefault();
+      const b = e.currentTarget, label = b.textContent; b.textContent = "Opening secure checkout…";
+      try { await Pay.start("launch", { ref: b.dataset.ref, from: "templates.html", fallback: b.href }); }
+      catch (err) { toast(err.message); }
+      finally { b.textContent = label; }
+    });
   }
   const t = tplById(id), allPals = tplAllPals(t); dlg._t = t; dlg._pal = t.p0 || 0; dlg._pg = 0; dlg._dev = dlg._dev || "desktop";
   $("#pvPage").innerHTML = ["Home", ...t.nav].map((n, i) => `<option value="${i}">${n}</option>`).join("");
@@ -252,8 +255,9 @@ function openPreview(id) {
     mountScaled(dev, dlg._t, allPals[dlg._pal], w, true, dlg._pg);
     const ref = `${dlg._t.id}-${allPals[dlg._pal].n}`.toLowerCase(), go = $("#pvGo");
     $("#pvEdit").href = `editor.html?t=${encodeURIComponent(dlg._t.id)}&p=${dlg._pal}`;
-    if (CONFIG.pay.launch) { go.href = `${CONFIG.pay.launch}?client_reference_id=${ref}`; go.textContent = "Buy this template · $449"; }
-    else go.href = `contact.html?template=${encodeURIComponent(dlg._t.id)}&palette=${encodeURIComponent(allPals[dlg._pal].n)}`;
+    go.href = `contact.html?template=${encodeURIComponent(dlg._t.id)}&palette=${encodeURIComponent(allPals[dlg._pal].n)}`;
+    go.dataset.ref = ref;
+    if (typeof Pay !== "undefined" && Pay.on) go.textContent = "Buy this template · $449";
   }
   dlg._draw = draw;
   dlg.showModal(); draw();
@@ -530,6 +534,9 @@ function openPreview(id) {
   }
   $$("[data-edprice]").forEach(o => { o.textContent = o.textContent.replace(/\$\d+/, "$" + CONFIG.editorPrice[o.dataset.edprice]); });
   if (plan) { const o = [...form.elements.need.options].find(o => o.text.toLowerCase().startsWith(plan.toLowerCase())); if (o) form.elements.need.value = o.text; }
+  /* back from card checkout: pick what they just bought */
+  const bought = { launch: "Launch", business: "Business", growth: "Growth", polish: "Polish", revamp: "Revamp:", revampPlus: "Revamp Plus", careHost: "Hosting", careCare: "Hosting", careGrow: "Hosting" }[qp.get("item")];
+  if (bought) { const o = [...form.elements.need.options].find(o => o.text.startsWith(bought)); if (o) form.elements.need.value = o.text; }
   if (CONFIG.formEndpoint) $$("[data-formnote]").forEach(n => n.textContent = "We reply within one business day.");
   form.addEventListener("submit", async e => {
     e.preventDefault();

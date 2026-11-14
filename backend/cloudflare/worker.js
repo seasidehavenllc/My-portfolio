@@ -10,6 +10,7 @@
      SUPABASE_KEY   the project's publishable key
      BASE_DOMAIN    the domain customer sites live under, e.g. example.com
      HOME_URL       where to send people who open an address with no site (your main website)
+     KEEP           optional: more subdomains you already use, e.g. "shop,portal", left untouched
 
    Route: *.<your domain>/*  (plus a proxied wildcard DNS record "*" for the domain) */
 
@@ -18,6 +19,10 @@ const page = (title, text, home) => `<!doctype html><html lang="en"><head><meta 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url), host = url.hostname.toLowerCase();
+    /* addresses you already use on your domain (your main website, email) go to where they
+       always went. Add more in the KEEP variable, comma separated. */
+    const keep = ["www", "mail", "webmail", "autodiscover", "autoconfig", "smtp", "imap", "pop", "ftp", "studios", ...String(env.KEEP || "").split(",")].map(s => s.trim().toLowerCase()).filter(Boolean);
+    if (host === env.BASE_DOMAIN || keep.some(k => host === `${k}.${env.BASE_DOMAIN}`)) return fetch(request);
     if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
     if (!/^[a-z0-9.-]{1,253}$/.test(host)) return new Response("Bad request", { status: 400 });
 

@@ -51,7 +51,9 @@ const Cloud = (() => {
       keep(stamp(s)); return session.access_token;
     } catch (e) { keep(null); return null; }
   }
-  const here = p => location.href.replace(/[^/]*([?#].*)?$/, "") + p;
+  /* email links must point at the website, also when this runs inside the phone app */
+  const web = /^https?:$/.test(location.protocol), site = (typeof CONFIG !== "undefined" && CONFIG.siteUrl) || "";
+  const here = p => (web || !site ? location.href.replace(/[^/]*([?#].*)?$/, "") : site.replace(/\/?$/, "/")) + p;
 
   /* links in our emails come back with the session in the address (#access_token=...) */
   let linkType = null;
@@ -64,7 +66,7 @@ const Cloud = (() => {
 
   const api = {
     on, domain: (C.domain || "").toLowerCase(), portal: C.portal || "", linkType: () => linkType,
-    signedIn: () => !!session,
+    signedIn: () => !!session, token,
     async user() {
       if (!session) return null;
       try { return await call("/auth/v1/user"); } catch (e) { return null; }

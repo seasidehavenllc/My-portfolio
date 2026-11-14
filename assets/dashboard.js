@@ -38,7 +38,7 @@
         <a class="btn btn-grad btn-sm" href="editor.html?site=${encodeURIComponent(s.id)}">Edit</a>
         ${s.plan === "free" ? `<button class="btn btn-ghost btn-sm" type="button" data-act="plans">Choose a plan</button>` : ""}
         ${s.plan !== "free" && s.published_at ? `<button class="btn btn-ghost btn-sm" type="button" data-act="download">Download</button>` : ""}
-        ${s.plan !== "free" && Cloud.portal ? `<a class="btn btn-ghost btn-sm" href="${esc(Cloud.portal)}" target="_blank" rel="noopener">Billing</a>` : ""}
+        ${s.plan !== "free" && (Pay.on || Cloud.portal) ? `<a class="btn btn-ghost btn-sm" data-billing href="${esc(Cloud.portal || "#")}" target="_blank" rel="noopener">Billing</a>` : ""}
         <button class="btn btn-ghost btn-sm" type="button" data-act="settings">Settings</button>
       </div></article>`;
   }
@@ -47,6 +47,12 @@
     catch (e) { say($("#dMsg"), e.message); return; }
     $("#dSites").innerHTML = sites.length ? sites.map(card).join("") : `<div class="panel empty" style="grid-column:1/-1"><h2>No sites yet</h2><p>Start from any of our templates. Designing is free.</p><a class="btn btn-grad" href="editor.html?new=1">Design my first site</a></div>`;
   }
+  /* billing: Stripe's own page for changing a card, seeing receipts or cancelling */
+  document.addEventListener("click", async e => {
+    const b = e.target.closest("[data-billing], #dPortal"); if (!b || !Pay.on) return;
+    e.preventDefault();
+    try { await Pay.portal(); } catch (err) { say($("#dMsg"), err.message); }
+  });
   $("#dSites").addEventListener("click", e => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     cur = sites.find(s => s.id === b.closest("[data-id]").dataset.id); if (!cur) return;
@@ -54,16 +60,31 @@
   });
 
   /* ---------- plans ---------- */
-  const payLink = (link, s) => link + (link.includes("?") ? "&" : "?") + "client_reference_id=" + encodeURIComponent(s.id) + (user.email ? "&prefilled_email=" + encodeURIComponent(user.email) : "");
+  const pay = Pay.on;
   function openPlans(s) {
     $("#dPlansName").textContent = s.name;
     $("#dMoPrice").textContent = "$" + monthly; $("#dBuyPrice").textContent = "$" + buy;
-    const mo = CONFIG.pay.editorMonthly, by = CONFIG.pay.editorBuy;
-    $("#dPayMo").href = mo ? payLink(mo, s) : `contact.html?design=1&plan=Hosted`;
-    $("#dPayBuy").href = by ? payLink(by, s) : `contact.html?design=1&plan=Download`;
+    $("#dPayMo").href = `contact.html?design=1&plan=Hosted`; $("#dPayBuy").href = `contact.html?design=1&plan=Download`;
     $("#dPayMo").textContent = `Start for $${monthly}/month`; $("#dPayBuy").textContent = `Buy for $${buy}`;
-    $("#dPlansNote").textContent = mo && by ? "You'll pay securely with Stripe, then come straight back here." : "Online payment isn't set up yet, so this sends us a request and we'll be in touch.";
+    say($("#dPlansMsg"), "");
+    $("#dPlansNote").textContent = pay ? "Pay securely by credit or debit card, Apple Pay or Google Pay, then come straight back here." : "Online payment isn't set up yet, so this sends us a request and we'll be in touch.";
     $("#dPlans").showModal();
+  }
+  /* card checkout through Stripe; the server checks the site is theirs and holds the prices */
+  [["#dPayMo", "editorMonthly"], ["#dPayBuy", "editorBuy"]].forEach(([id, item]) => $(id).addEventListener("click", async e => {
+    if (!pay || !cur) return;
+    e.preventDefault();
+    const b = e.currentTarget, label = b.textContent; b.textContent = "Opening secure checkout…";
+    try { await Pay.start(item, { site: cur.id, fallback: b.getAttribute("href") }); }
+    catch (err) { say($("#dPlansMsg"), err.message); }
+    finally { b.textContent = label; }
+  }));
+  /* phone app: checkout opens in a sheet; when it closes, look for the new plan */
+  Pay.onClose(() => { $("#dPlans").open && $("#dPlans").close(); watchPlans(); });
+  async function watchPlans() {
+    const before = sites.map(s => s.plan).join();
+    for (let i = 0; i < 6; i++) { await new Promise(r => setTimeout(r, 2500)); await refresh(); if (sites.map(s => s.plan).join() !== before) { say($("#dMsg"), "You're all set. Open the editor and press Publish to put your changes online.", "ok"); return true; } }
+    return false;
   }
 
   /* ---------- download ---------- */
@@ -128,7 +149,7 @@
   $("#dAcct").addEventListener("click", () => {
     $("#dEmailForm").email.value = user.email || ""; $("#dPassForm").password.value = "";
     say($("#dEmailMsg"), ""); say($("#dPassMsg"), "");
-    $("#dPortal").hidden = !Cloud.portal; if (Cloud.portal) $("#dPortal").href = Cloud.portal;
+    $("#dPortal").hidden = !(Pay.on || Cloud.portal); $("#dPortal").href = Cloud.portal || "#";
     $("#dAcctDlg").showModal();
   });
   $("#dEmailForm").addEventListener("submit", async e => {
@@ -171,10 +192,14 @@
   }
   if (qp.get("plans")) { cur = sites.find(s => s.id === qp.get("plans")); history.replaceState(null, "", location.pathname); if (cur) openPlans(cur); }
   if (qp.get("paid")) {
+    const session = qp.get("paid");
     history.replaceState(null, "", location.pathname);
     say($("#dMsg"), "Thank you! Your payment went through. Your plan switches on in a moment.", "ok");
-    /* the payment is confirmed by Stripe a few seconds after they land here */
+    /* ask the server to check the payment with Stripe and switch the plan on right away */
+    if (Pay.on && /^cs_/.test(session)) { try { await Pay.confirm(session); } catch (e) { /* Stripe's event switches it on shortly anyway */ } }
     const before = sites.map(s => s.plan).join();
-    for (let i = 0; i < 6; i++) { await new Promise(r => setTimeout(r, 3000)); await refresh(); if (sites.map(s => s.plan).join() !== before) { say($("#dMsg"), "You're all set. Open the editor and press Publish to put your changes online.", "ok"); break; } }
+    await refresh();
+    if (sites.map(s => s.plan).join() !== before) say($("#dMsg"), "You're all set. Open the editor and press Publish to put your changes online.", "ok");
+    else watchPlans();
   }
 })();

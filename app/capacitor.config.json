@@ -1,0 +1,8 @@
+{
+  "appId": "com.seasidehaven.sitebuilder",
+  "appName": "Site Builder",
+  "webDir": "www",
+  "backgroundColor": "#05080C",
+  "ios": { "contentInset": "always", "scheme": "Site Builder" },
+  "android": { "backgroundColor": "#05080C" }
+}
