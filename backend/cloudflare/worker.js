@@ -11,6 +11,7 @@
      BASE_DOMAIN    the domain customer sites live under, e.g. example.com
      HOME_URL       where to send people who open an address with no site (your main website)
      KEEP           optional: more subdomains you already use, e.g. "shop,portal", left untouched
+     APPLE_TEAM_ID  your 10-character Apple Team ID, so the iPhone app can fill in saved passwords
 
    Route: *.<your domain>/*  (plus a proxied wildcard DNS record "*" for the domain) */
 
@@ -24,6 +25,13 @@ export default {
     const keep = ["www", "mail", "webmail", "autodiscover", "autoconfig", "smtp", "imap", "pop", "ftp", "studios", ...String(env.KEEP || "").split(",")].map(s => s.trim().toLowerCase()).filter(Boolean);
     if (host === env.BASE_DOMAIN || keep.some(k => host === `${k}.${env.BASE_DOMAIN}`)) return fetch(request);
     if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
+    /* app.<domain> tells iPhones which app may use passwords saved for it (Password AutoFill) */
+    if (host === `app.${env.BASE_DOMAIN}`) {
+      if (url.pathname === "/.well-known/apple-app-site-association" && env.APPLE_TEAM_ID)
+        return new Response(JSON.stringify({ webcredentials: { apps: [`${String(env.APPLE_TEAM_ID).trim()}.com.seasidehaven.sitebuilder`] } }),
+          { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=3600" } });
+      return Response.redirect(env.HOME_URL || `https://${env.BASE_DOMAIN}`, 302);
+    }
     if (!/^[a-z0-9.-]{1,253}$/.test(host)) return new Response("Bad request", { status: 400 });
 
     const cache = caches.default, key = new Request(`https://${host}/__site`, { method: "GET" });

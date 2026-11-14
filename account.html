@@ -28,11 +28,12 @@
           <button type="button" role="tab" aria-selected="true" data-mode="in">Sign in</button>
           <button type="button" role="tab" aria-selected="false" data-mode="up">Create account</button>
         </div>
-        <form class="f" id="aForm" novalidate>
+        <form class="f" id="aForm" method="post" action="#" autocomplete="on" novalidate>
           <div class="msg" id="aMsg" role="status" hidden></div>
-          <label id="aEmailL">Email<input name="email" type="email" required autocomplete="email"></label>
-          <label id="aPassL">Password<input name="password" type="password" required minlength="8" autocomplete="current-password"></label>
-          <label id="aCodeL" hidden>Code from the email<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" style="letter-spacing:.3em;font-size:1.3rem"></label>
+          <label id="aEmailL">Email<input name="email" id="aEmail" type="email" inputmode="email" required autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next"></label>
+          <label id="aPassL">Password<span class="pw"><input name="password" id="aPass" type="password" required minlength="8" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go"><button type="button" class="pw-eye" id="aEye" aria-label="Show password" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
+          <label class="check" id="aKeepL"><input type="checkbox" id="aKeep" checked> Keep me signed in</label>
+          <label id="aCodeL" hidden>Code from the email<input name="code" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="10" placeholder="123456" style="letter-spacing:.3em;font-size:1.3rem"></label>
           <button class="btn btn-grad" type="submit" id="aGo">Sign in</button>
           <button class="linkish" type="button" id="aForgot">Forgot your password?</button>
           <button class="linkish" type="button" id="aResend" hidden>Send a new code</button>
@@ -55,6 +56,13 @@
   let mode = qp.get("mode") === "up" ? "up" : "in";
   const say = (text, kind = "err") => { msg.textContent = text; msg.className = "msg " + kind; msg.hidden = !text; };
 
+  const inApp = document.documentElement.classList.contains("in-app");
+  /* show or hide the password */
+  $("#aEye").addEventListener("click", () => {
+    const on = form.password.type === "password";
+    form.password.type = on ? "text" : "password";
+    $("#aEye").setAttribute("aria-pressed", on); $("#aEye").setAttribute("aria-label", on ? "Hide password" : "Show password");
+  });
   let codeFor = "signup"; /* "signup" or "recovery" while mode is "code" */
   function setMode(m) {
     mode = m;
@@ -62,6 +70,8 @@
     $("#aCodeL").hidden = $("#aResend").hidden = m !== "code";
     if (m === "code") { $("#aEmailL").hidden = true; $("#aPassL").hidden = true; $("#aForgot").hidden = true; form.code.value = ""; }
     else { $("#aEmailL").hidden = m === "newpass"; $("#aPassL").hidden = m === "reset"; $("#aForgot").hidden = m !== "in"; }
+    /* in the app you always stay signed in; on the web it's a choice */
+    $("#aKeepL").hidden = inApp || !(m === "in" || m === "up");
     $$tabs().forEach(b => b.setAttribute("aria-selected", b.dataset.mode === m));
     form.password.autocomplete = m === "in" ? "current-password" : "new-password";
     const words = { in: ["Welcome back", "Sign in to edit and publish your sites.", "Sign in"], up: ["Create your account", "Save your designs, publish your site and manage it from any device.", "Create account"], reset: ["Reset your password", "We'll email you a code to choose a new password.", "Email me a code"], code: ["Check your email", "Enter the code we just sent to " + (form.email.value.trim() || "your email") + ".", "Continue"], newpass: ["Choose a new password", "Pick a password with at least 8 characters.", "Save password"] }[m];
@@ -80,6 +90,9 @@
   if (Cloud.linkType() === "recovery") setMode("newpass");
   else if (Cloud.signedIn()) { location.replace(next); return; }
   else setMode(mode);
+  /* welcome back: fill in the email used last time, so only the password is left */
+  const last = Cloud.lastEmail();
+  if (last && !form.email.value) { form.email.value = last; if (mode === "in") setTimeout(() => form.password.focus({ preventScroll: true }), 60); }
 
   form.addEventListener("submit", async e => {
     e.preventDefault();
@@ -97,6 +110,7 @@
     }
     if (mode !== "reset" && password.length < 8) return say("Please use a password with at least 8 characters.");
     go.disabled = true; say("");
+    if (mode === "in" || mode === "up") Cloud.remember(inApp || $("#aKeep").checked, email);
     try {
       if (mode === "in") {
         try { await Cloud.signIn(email, password); }
