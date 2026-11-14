@@ -3,6 +3,12 @@
   "appName": "Site Builder",
   "webDir": "www",
   "backgroundColor": "#05080C",
-  "ios": { "contentInset": "always", "scheme": "Site Builder" },
-  "android": { "backgroundColor": "#05080C" }
+  "ios": {
+    "contentInset": "never",
+    "allowsLinkPreview": false,
+    "scheme": "Site Builder"
+  },
+  "android": {
+    "backgroundColor": "#05080C"
+  }
 }

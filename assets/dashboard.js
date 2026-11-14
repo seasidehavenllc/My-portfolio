@@ -17,6 +17,16 @@
   user = await Cloud.user();
   if (!user) { location.replace("account.html?next=" + encodeURIComponent(location.pathname.split("/").pop() + location.search)); return; }
   $("#dWho").textContent = user.email || "";
+  /* profile button: initials from the email, like Wix and Squarespace */
+  const initials = (user.email || "?").split("@")[0].split(/[._-]+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "?";
+  $("#dInit").textContent = $("#dInit2").textContent = initials;
+  const openMe = () => { $("#dPlanSum").textContent = sites.some(s => s.plan === "monthly") ? "Website plan · $" + monthly + "/month" : sites.some(s => s.plan === "owned") ? "Owned site" : "Free plan"; $("#dMe").showModal(); };
+  $("#dMeBtn").addEventListener("click", openMe); $("#dMeTab").addEventListener("click", openMe);
+  $("#dBill").addEventListener("click", async () => {
+    if (!sites.some(s => s.plan !== "free")) { $("#dMe").close(); const s = sites[0]; if (s) { cur = s; openPlans(s); } else location.href = "pricing.html"; return; }
+    if (Cloud.portal) { open(Cloud.portal, "_blank", "noopener"); return; }
+    try { await Pay.portal(); } catch (err) { $("#dMe").close(); say($("#dMsg"), err.message); }
+  });
   $("#dSetBase").textContent = $("#dClaimBase").textContent = "." + (Cloud.domain || "yourdomain.com");
 
   document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
@@ -45,7 +55,18 @@
   async function refresh() {
     try { sites = await Cloud.listSites() || []; }
     catch (e) { say($("#dMsg"), e.message); return; }
-    $("#dSites").innerHTML = sites.length ? sites.map(card).join("") : `<div class="panel empty" style="grid-column:1/-1"><h2>No sites yet</h2><p>Start from any of our templates. Designing is free.</p><a class="btn btn-grad" href="editor.html?new=1">Design my first site</a></div>`;
+    document.body.classList.toggle("no-sites", !sites.length);
+    $("#dSites").innerHTML = sites.length ? sites.map(card).join("") : `<div class="panel empty first" style="grid-column:1/-1">
+      <div class="fan" aria-hidden="true"><div class="fan-c" data-tid="ember"></div><div class="fan-c" data-tid="harbor"></div><div class="fan-c" data-tid="velvet"></div></div>
+      <h2>Your first site <em>starts here.</em></h2>
+      <p>Choose from ${typeof TEMPLATES !== "undefined" ? TEMPLATES.length : 54} designs made for real businesses. Designing is free; going live is $${monthly} a month.</p>
+      <a class="e-go" href="new.html">Browse designs<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <p class="meta-line">Rather have us build it? <a href="pricing.html#new">See studio packages</a></p></div>`;
+    if (!sites.length && typeof tpRender === "function") document.querySelectorAll(".fan-c").forEach(el => {
+      const t = tplGet(el.dataset.tid); if (!t) return;
+      el.innerHTML = `<div class="scale" style="width:390px">${tpRender(t)}</div>`;
+      el.firstElementChild.style.transform = `scale(${el.clientWidth / 390})`;
+    });
   }
   /* billing: Stripe's own page for changing a card, seeing receipts or cancelling */
   document.addEventListener("click", async e => {
@@ -80,7 +101,7 @@
     finally { b.textContent = label; }
   }));
   /* phone app: checkout opens in a sheet; when it closes, look for the new plan */
-  Pay.onClose(() => { $("#dPlans").open && $("#dPlans").close(); watchPlans(); });
+  try { Pay.onClose(() => { $("#dPlans").open && $("#dPlans").close(); watchPlans(); }); } catch (e) { /* not in the phone app */ }
   async function watchPlans() {
     const before = sites.map(s => s.plan).join();
     for (let i = 0; i < 6; i++) { await new Promise(r => setTimeout(r, 2500)); await refresh(); if (sites.map(s => s.plan).join() !== before) { say($("#dMsg"), "You're all set. Open the editor and press Publish to put your changes online.", "ok"); return true; } }
@@ -147,6 +168,7 @@
 
   /* ---------- account ---------- */
   $("#dAcct").addEventListener("click", () => {
+    $("#dMe").close();
     $("#dEmailForm").email.value = user.email || ""; $("#dPassForm").password.value = "";
     say($("#dEmailMsg"), ""); say($("#dPassMsg"), "");
     $("#dPortal").hidden = !(Pay.on || Cloud.portal); $("#dPortal").href = Cloud.portal || "#";

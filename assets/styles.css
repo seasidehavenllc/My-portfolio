@@ -473,3 +473,23 @@ main{animation:pagein .5s var(--ease)}
 .design-note b{color:var(--white)}
 .design-note a{color:var(--aqua)}
 .design-note .btn{margin-top:10px;display:flex}
+
+/* ---------- phones and the iPhone app ---------- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent}
+/* dialogs: the reset above removes their centering margin */
+dialog{margin:auto}
+/* stay clear of the notch and the home bar */
+header{padding-top:env(safe-area-inset-top)}
+.toast{bottom:calc(24px + env(safe-area-inset-bottom))}
+.to-top{bottom:calc(20px + env(safe-area-inset-bottom))}
+/* iPhone zooms into any field under 16px; keep fields at 16px on touch screens */
+@media (pointer:coarse){input,select,textarea{font-size:16px !important}}
+/* inside the app: no rubber-band page bounce or long-press previews, like a native app */
+html.in-app,html.in-app body{overscroll-behavior:none}
+html.in-app a,html.in-app button{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+html.in-app .announce,html.in-app .promo{display:none}
+#hdr ~ main{padding-top:env(safe-area-inset-top)}
+
+/* never zoom on double-tap, and taps fire immediately */
+html,body,*{touch-action:manipulation}

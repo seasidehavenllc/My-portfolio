@@ -8,5 +8,5 @@ mkdirSync(www);
 for (const f of readdirSync(root)) if (f.endsWith(".html") || f === "manifest.webmanifest") cpSync(join(root, f), join(www, f));
 cpSync(join(root, "assets"), join(www, "assets"), { recursive: true });
 renameSync(join(www, "index.html"), join(www, "home.html"));
-writeFileSync(join(www, "index.html"), '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>html{background:#05080C}</style><script>location.replace("dashboard.html")</script>\n');
+writeFileSync(join(www, "index.html"), '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><style>html{background:#05080C}</style><script>location.replace("dashboard.html")</script>\n');
 console.log("Copied the site into app/www");
