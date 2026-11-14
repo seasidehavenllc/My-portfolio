@@ -155,3 +155,11 @@
 }
 
 @media(max-width:700px){.to-top{bottom:calc(92px + env(safe-area-inset-bottom))}}
+
+/* sign in: show-password button and "keep me signed in" */
+.pw{position:relative;display:block}
+form.f .pw input{padding-right:52px;width:100%}
+.pw-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.pw-eye[aria-pressed="true"]{color:var(--aqua)}
+form.f label.check{display:flex;flex-direction:row;align-items:center;gap:10px;font-weight:500;color:var(--text);cursor:pointer}
+form.f label.check input{width:20px;height:20px;min-height:0;margin:0;accent-color:var(--sea)}

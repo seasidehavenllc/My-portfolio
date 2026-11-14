@@ -26,6 +26,10 @@ upload to App Store Connect. Run `npm run sync` again whenever the website chang
   in `Info.plist` and TestFlight won't ask the encryption question.
 - Icon and launch screen use the Seaside Haven logo.
 
+## Saved passwords (Password AutoFill)
+
+The app has the Associated Domains capability with `webcredentials:app.seasidehavenllc.com` (`App/App.entitlements`), so iOS offers saved passwords on the sign-in screen and offers to save new ones. It works once the Worker has the `APPLE_TEAM_ID` variable (see `backend/README.md`). With automatic signing, Xcode turns the capability on for the App ID by itself.
+
 ## Payments in the app, and Apple's rules
 
 Checkout opens Stripe's secure card page in a sheet inside the app (cards, Apple Pay,

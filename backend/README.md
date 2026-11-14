@@ -37,7 +37,7 @@ To test without real money, paste a `sk_test_` key first and pay with card `4242
 4. Wait for Cloudflare's "active" email, usually within an hour.
 
 ### 3. Customer sites on Cloudflare
-1. Workers & Pages, **Create**, Worker, paste in `cloudflare/worker.js`, Deploy. Under Settings, Variables add `SUPABASE_URL` = `https://sspihydntrcmdaxjxjnu.supabase.co`, `SUPABASE_KEY` = the publishable key from `assets/config.js`, `BASE_DOMAIN` = `seasidehavenllc.com`, `HOME_URL` = your website.
+1. Workers & Pages, **Create**, Worker, paste in `cloudflare/worker.js`, Deploy. Under Settings, Variables add `SUPABASE_URL` = `https://sspihydntrcmdaxjxjnu.supabase.co`, `SUPABASE_KEY` = the publishable key from `assets/config.js`, `BASE_DOMAIN` = `seasidehavenllc.com`, `HOME_URL` = your website. Optional: `APPLE_TEAM_ID` = your 10-character Team ID (Apple Developer, Membership details). It lets the iPhone app fill in saved passwords; the Worker answers `https://app.seasidehavenllc.com/.well-known/apple-app-site-association` with it.
 2. In DNS, add a **proxied** `AAAA` record named `*` pointing to `100::`. Records you already have (like `www`) keep working, because a named record always wins over `*`.
 3. On the Worker, Settings, Domains & Routes, add the route `*.seasidehavenllc.com/*`.
 
