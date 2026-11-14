@@ -32,8 +32,10 @@
           <div class="msg" id="aMsg" role="status" hidden></div>
           <label id="aEmailL">Email<input name="email" type="email" required autocomplete="email"></label>
           <label id="aPassL">Password<input name="password" type="password" required minlength="8" autocomplete="current-password"></label>
+          <label id="aCodeL" hidden>Code from the email<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" style="letter-spacing:.3em;font-size:1.3rem"></label>
           <button class="btn btn-grad" type="submit" id="aGo">Sign in</button>
           <button class="linkish" type="button" id="aForgot">Forgot your password?</button>
+          <button class="linkish" type="button" id="aResend" hidden>Send a new code</button>
         </form>
       </div>
       <p class="meta-line" style="text-align:center;margin-top:18px">Designing is free. You only pay when you want your site online or to download it.</p>
@@ -53,18 +55,26 @@
   let mode = qp.get("mode") === "up" ? "up" : "in";
   const say = (text, kind = "err") => { msg.textContent = text; msg.className = "msg " + kind; msg.hidden = !text; };
 
+  let codeFor = "signup"; /* "signup" or "recovery" while mode is "code" */
   function setMode(m) {
     mode = m;
-    $("#aTabs").hidden = m === "reset" || m === "newpass";
+    $("#aTabs").hidden = m === "reset" || m === "newpass" || m === "code";
+    $("#aCodeL").hidden = $("#aResend").hidden = m !== "code";
+    if (m === "code") { $("#aEmailL").hidden = true; $("#aPassL").hidden = true; $("#aForgot").hidden = true; form.code.value = ""; }
+    else { $("#aEmailL").hidden = m === "newpass"; $("#aPassL").hidden = m === "reset"; $("#aForgot").hidden = m !== "in"; }
     $$tabs().forEach(b => b.setAttribute("aria-selected", b.dataset.mode === m));
-    $("#aEmailL").hidden = m === "newpass"; $("#aPassL").hidden = m === "reset"; $("#aForgot").hidden = m !== "in";
     form.password.autocomplete = m === "in" ? "current-password" : "new-password";
-    const words = { in: ["Welcome back", "Sign in to edit and publish your sites.", "Sign in"], up: ["Create your account", "Save your designs, publish your site and manage it from any device.", "Create account"], reset: ["Reset your password", "We'll email you a link to choose a new password.", "Email me a link"], newpass: ["Choose a new password", "Pick a password with at least 8 characters.", "Save password"] }[m];
+    const words = { in: ["Welcome back", "Sign in to edit and publish your sites.", "Sign in"], up: ["Create your account", "Save your designs, publish your site and manage it from any device.", "Create account"], reset: ["Reset your password", "We'll email you a code to choose a new password.", "Email me a code"], code: ["Check your email", "Enter the code we just sent to " + (form.email.value.trim() || "your email") + ".", "Continue"], newpass: ["Choose a new password", "Pick a password with at least 8 characters.", "Save password"] }[m];
     $("#aT").textContent = words[0]; $("#aL").textContent = words[1]; go.textContent = words[2]; say("");
   }
   const $$tabs = () => [...document.querySelectorAll("#aTabs button")];
   $$tabs().forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
   $("#aForgot").addEventListener("click", () => setMode("reset"));
+  $("#aResend").addEventListener("click", async () => {
+    const email = form.email.value.trim();
+    try { codeFor === "recovery" ? await Cloud.resetPassword(email) : await Cloud.resendCode(email); say("A new code is on its way to " + email + ".", "ok"); }
+    catch (err) { say(err.message); }
+  });
 
   if (!Cloud.on) { setMode("in"); say("Customer accounts aren't switched on yet. You can still design for free in the editor.", "info"); go.disabled = true; return; }
   if (Cloud.linkType() === "recovery") setMode("newpass");
@@ -75,15 +85,36 @@
     e.preventDefault();
     const email = form.email.value.trim(), password = form.password.value;
     if (mode !== "newpass" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return say("Please enter a valid email.");
+    if (mode === "code") {
+      const code = form.code.value.replace(/\D/g, "");
+      if (code.length < 6) return say("Please enter the code from the email.");
+      go.disabled = true; say("");
+      try {
+        await Cloud.verifyCode(email, code, codeFor);
+        if (codeFor === "recovery") setMode("newpass"); else { location.replace(next); return; }
+      } catch (err) { say(err.message); }
+      go.disabled = false; return;
+    }
     if (mode !== "reset" && password.length < 8) return say("Please use a password with at least 8 characters.");
     go.disabled = true; say("");
     try {
-      if (mode === "in") { await Cloud.signIn(email, password); location.replace(next); return; }
+      if (mode === "in") {
+        try { await Cloud.signIn(email, password); }
+        catch (err) {
+          /* signed up but never typed the code: send a fresh one and ask for it */
+          if (!/confirm your email/i.test(err.message)) throw err;
+          codeFor = "signup"; setMode("code"); go.disabled = false;
+          try { await Cloud.resendCode(email); } catch (e2) { /* the earlier code may still work */ }
+          return say("Please confirm your email first. We sent a code to " + email + ".", "info");
+        }
+        location.replace(next); return;
+      }
       if (mode === "up") {
         if (await Cloud.signUp(email, password) === "in") { location.replace(next); return; }
-        say("Almost there. We sent a confirmation link to " + email + ". Open it to finish creating your account.", "ok");
+        codeFor = "signup"; setMode("code"); go.disabled = false;
+        return say("Almost there. We sent a code to " + email + ".", "ok");
       }
-      if (mode === "reset") { await Cloud.resetPassword(email); say("If there's an account for " + email + ", a reset link is on its way.", "ok"); }
+      if (mode === "reset") { await Cloud.resetPassword(email); codeFor = "recovery"; setMode("code"); go.disabled = false; return say("If there's an account for " + email + ", a code is on its way.", "ok"); }
       if (mode === "newpass") { await Cloud.setPassword(password); say("Password saved. Taking you to your sites…", "ok"); setTimeout(() => location.replace("dashboard.html"), 1000); return; }
     } catch (err) { say(err.message); }
     go.disabled = false;
