@@ -1,12 +1,11 @@
 {
   "appId": "com.seasidehaven.sitebuilder",
-  "appName": "Site Builder",
+  "appName": "Seaside Studios",
   "webDir": "www",
   "backgroundColor": "#05080C",
   "ios": {
     "contentInset": "never",
-    "allowsLinkPreview": false,
-    "scheme": "Site Builder"
+    "allowsLinkPreview": false
   },
   "android": {
     "backgroundColor": "#05080C"

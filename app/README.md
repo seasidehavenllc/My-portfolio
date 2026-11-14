@@ -1,4 +1,4 @@
-# Site Builder app (iPhone and Android)
+# Seaside Studios app (iPhone and Android)
 
 The app packages the website's own pages (dashboard, sign in, the editor) with
 [Capacitor](https://capacitorjs.com), so customers can build, publish and manage
@@ -19,7 +19,7 @@ npm run android    # same, for Android Studio
 In Xcode, pick your team under Signing & Capabilities, then Product, Archive, and
 upload to App Store Connect. Run `npm run sync` again whenever the website changes.
 
-- App name: **Site Builder** · iPhone bundle ID: `com.seaside-haven.sitebuilder` (set in the
+- App name: **Seaside Studios** · iPhone bundle ID: `com.seaside-haven.sitebuilder` (set in the
   Xcode project, already registered in App Store Connect) · Android package:
   `com.seasidehaven.sitebuilder` (Android doesn't allow dashes).
 - The app only uses Apple's standard HTTPS, so `ITSAppUsesNonExemptEncryption` is set to NO
