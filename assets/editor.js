@@ -22,7 +22,7 @@
   /* copies a design without duplicating its (large) uploaded photos in memory */
   const snap = s => { const imgs = s.t.imgs || {}, c = clone({ src: s.src, P: s.P, t: Object.assign({}, s.t, { imgs: undefined }) }); c.t.imgs = Object.assign({}, imgs); return c; };
 
-  let S, dev = innerWidth < 700 ? "phone" : "desktop", pg = 0, preview = false, hist = [], hi = -1, hotSec = null, editing = null, needDraw = false;
+  let S, dev = Math.min(innerWidth, screen.width || innerWidth) < 700 ? "phone" : "desktop", pg = 0, preview = false, hist = [], hi = -1, hotSec = null, editing = null, needDraw = false;
   /* once someone has put in their own words or photos, switching templates keeps them by default */
   const madeItTheirs = () => { $("#edKeep").checked = true; };
 
@@ -361,7 +361,7 @@
     e.preventDefault(); travel(e.shiftKey ? 1 : -1);
   });
   $("#edPreview").addEventListener("click", e => {
-    preview = !preview; e.currentTarget.setAttribute("aria-pressed", preview); e.currentTarget.textContent = preview ? "Back to editing" : "Preview";
+    preview = !preview; e.currentTarget.setAttribute("aria-pressed", preview); e.currentTarget.querySelector("span").textContent = preview ? "Back to editing" : "Preview"; e.currentTarget.setAttribute("aria-label", preview ? "Back to editing" : "Preview");
     document.body.classList.toggle("previewing", preview); draw();
   });
   const fab = $("#edFab");
@@ -498,7 +498,7 @@ document.addEventListener("click",function(e){
   const qp = new URLSearchParams(location.search), want = qp.get("t"), saved = load();
   if (want && tplGet(want) && (!saved || saved.src !== tplGet(want).id)) {
     S = !saved || confirm(`Start a new design from the ${tplGet(want).name} template? This replaces the design you were working on.`) ? fresh(want, qp.get("p") == null ? null : +qp.get("p")) : saved;
-  } else S = qp.has("new") ? fresh("harbor") : saved || fresh("harbor");
+  } else S = qp.has("new") ? fresh(tplGet(qp.get("t") || "") ? qp.get("t") : "harbor") : saved || fresh("harbor");
   if (!Array.isArray(S.t.sections) || !S.t.sections.length) S.t.sections = tpExtra(S.t).sections.slice();
   /* back from Stripe checkout: unlock and hand over the file */
   const justPaid = /^cs_(live|test)_[A-Za-z0-9]{10,}$/.test(qp.get("paid") || "");
@@ -508,7 +508,7 @@ document.addEventListener("click",function(e){
   /* opened from the dashboard: swap in the site saved in the account */
   const wantSite = qp.get("site");
   if (CLOUD) {
-    $("#edLaunch").textContent = "My sites"; $("#edLaunch").href = "dashboard.html";
+    $("#edLaunch").textContent = "My sites"; $("#edLaunch").href = "dashboard.html"; $(".ed-brand").href = "dashboard.html"; $(".ed-brand").setAttribute("aria-label", "Back to My sites");
     if (wantSite) (async () => {
       try {
         const user = await Cloud.user();

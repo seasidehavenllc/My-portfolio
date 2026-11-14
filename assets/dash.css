@@ -107,7 +107,7 @@
   .tabbar{display:grid;grid-template-columns:repeat(3,1fr);position:fixed;left:0;right:0;bottom:0;z-index:45;background:rgba(8,12,17,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
   .tabbar a,.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.7rem;font-weight:600;text-decoration:none;cursor:pointer}
   .tabbar [aria-current]{color:var(--aqua)}
-  .tabbar .tab-new svg{width:44px;height:30px;padding:4px 11px;border-radius:999px;background:var(--grad);color:#03141A}
+  .tabbar .tab-new svg{width:44px;height:30px;padding:4px 11px;border-radius:12px;background:var(--white);color:#05080C}
   .sites{grid-template-columns:1fr}
   .site{padding:18px}
   .site-acts .btn{flex:1 1 auto}
@@ -134,3 +134,22 @@
 }
 .app-top .who .avatar span{color:inherit;max-width:none;overflow:visible}
 .e-steps{flex-direction:column;align-items:flex-start;width:max-content;max-width:100%;margin-inline:auto}
+
+/* empty state: three real designs, fanned like prints on a table */
+.empty.first{padding:34px 22px 30px}
+.fan{position:relative;height:178px;margin:0 auto 26px;width:260px}
+.fan-c{position:absolute;top:8px;left:50%;width:112px;aspect-ratio:3/4;margin-left:-56px;border-radius:12px;overflow:hidden;background:#0C1117;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 18px 34px -12px rgba(0,0,0,.85)}
+.fan-c .scale{position:absolute;top:0;left:0;transform-origin:0 0;pointer-events:none}
+.fan-c:nth-child(1){transform:translateX(-74px) rotate(-8deg);top:18px}
+.fan-c:nth-child(3){transform:translateX(74px) rotate(8deg);top:18px}
+.fan-c:nth-child(2){z-index:1;transform:translateY(-4px)}
+.empty.first h2{font-size:1.65rem;letter-spacing:-.02em;font-weight:600}
+.empty.first h2 em{font-family:var(--serif);font-weight:400;font-style:italic;color:var(--aqua)}
+.empty.first p{font-size:.95rem}
+.e-go{display:inline-flex;align-items:center;gap:8px;margin-top:22px;min-height:48px;padding:0 22px;border-radius:13px;background:var(--white);color:#05080C;font-weight:600;text-decoration:none}
+.e-go:active{background:#DCE3E6}
+.empty.first .meta-line{margin-top:18px;font-size:.88rem}
+@media(max-width:700px){
+  body.no-sites .app-head p{display:none}
+  body.no-sites .app-head{margin-bottom:14px}
+}

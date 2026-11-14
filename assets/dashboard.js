@@ -56,12 +56,17 @@
     try { sites = await Cloud.listSites() || []; }
     catch (e) { say($("#dMsg"), e.message); return; }
     document.body.classList.toggle("no-sites", !sites.length);
-    $("#dSites").innerHTML = sites.length ? sites.map(card).join("") : `<div class="panel empty" style="grid-column:1/-1">
-      <svg class="empty-art" viewBox="0 0 240 150" aria-hidden="true"><defs><linearGradient id="eg" x1="0" x2="1"><stop offset="0" stop-color="#2EC5E0"/><stop offset="1" stop-color="#7FE6F2"/></linearGradient></defs><rect x="20" y="12" width="200" height="126" rx="14" fill="#0E151C" stroke="#1E2A33" stroke-width="2"/><circle cx="38" cy="28" r="4" fill="#2A3640"/><circle cx="51" cy="28" r="4" fill="#2A3640"/><circle cx="64" cy="28" r="4" fill="#2A3640"/><rect x="36" y="48" width="96" height="12" rx="6" fill="url(#eg)"/><rect x="36" y="68" width="140" height="7" rx="3.5" fill="#2A3640"/><rect x="36" y="81" width="118" height="7" rx="3.5" fill="#2A3640"/><rect x="36" y="102" width="62" height="20" rx="10" fill="url(#eg)"/><rect x="150" y="96" width="54" height="32" rx="8" fill="#16212A"/></svg>
-      <h2>Create your first website</h2><p>Pick a template, make it yours, and put it online for $${monthly} a month. Designing is free.</p>
-      <ol class="e-steps"><li><b>1</b>Pick a template</li><li><b>2</b>Add your words and photos</li><li><b>3</b>Publish to your own address</li></ol>
-      <a class="btn btn-grad" href="editor.html?new=1">Start with a template</a>
+    $("#dSites").innerHTML = sites.length ? sites.map(card).join("") : `<div class="panel empty first" style="grid-column:1/-1">
+      <div class="fan" aria-hidden="true"><div class="fan-c" data-tid="ember"></div><div class="fan-c" data-tid="harbor"></div><div class="fan-c" data-tid="velvet"></div></div>
+      <h2>Your first site <em>starts here.</em></h2>
+      <p>Choose from ${typeof TEMPLATES !== "undefined" ? TEMPLATES.length : 54} designs made for real businesses. Designing is free; going live is $${monthly} a month.</p>
+      <a class="e-go" href="new.html">Browse designs<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       <p class="meta-line">Rather have us build it? <a href="pricing.html#new">See studio packages</a></p></div>`;
+    if (!sites.length && typeof tpRender === "function") document.querySelectorAll(".fan-c").forEach(el => {
+      const t = tplGet(el.dataset.tid); if (!t) return;
+      el.innerHTML = `<div class="scale" style="width:390px">${tpRender(t)}</div>`;
+      el.firstElementChild.style.transform = `scale(${el.clientWidth / 390})`;
+    });
   }
   /* billing: Stripe's own page for changing a card, seeing receipts or cancelling */
   document.addEventListener("click", async e => {

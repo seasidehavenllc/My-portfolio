@@ -490,3 +490,6 @@ html.in-app,html.in-app body{overscroll-behavior:none}
 html.in-app a,html.in-app button{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 html.in-app .announce,html.in-app .promo{display:none}
 #hdr ~ main{padding-top:env(safe-area-inset-top)}
+
+/* never zoom on double-tap, and taps fire immediately */
+html,body,*{touch-action:manipulation}
