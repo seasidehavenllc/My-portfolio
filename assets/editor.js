@@ -22,7 +22,7 @@
   /* copies a design without duplicating its (large) uploaded photos in memory */
   const snap = s => { const imgs = s.t.imgs || {}, c = clone({ src: s.src, P: s.P, t: Object.assign({}, s.t, { imgs: undefined }) }); c.t.imgs = Object.assign({}, imgs); return c; };
 
-  let S, dev = "desktop", pg = 0, preview = false, hist = [], hi = -1, hotSec = null, editing = null, needDraw = false;
+  let S, dev = innerWidth < 700 ? "phone" : "desktop", pg = 0, preview = false, hist = [], hi = -1, hotSec = null, editing = null, needDraw = false;
   /* once someone has put in their own words or photos, switching templates keeps them by default */
   const madeItTheirs = () => { $("#edKeep").checked = true; };
 
@@ -352,6 +352,7 @@
 
   /* ---------- top bar ---------- */
   $$("[data-dev]").forEach(b => b.addEventListener("click", () => { dev = b.dataset.dev; $$("[data-dev]").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); }));
+  $$("[data-dev]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.dev === dev)));
   $("#edPage").addEventListener("change", e => { pg = +e.target.value; draw(false); });
   $("#edUndo").addEventListener("click", () => travel(-1));
   $("#edRedo").addEventListener("click", () => travel(1));

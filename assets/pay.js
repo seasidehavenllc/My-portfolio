@@ -5,6 +5,7 @@
    Stripe's secure card page: credit and debit cards, Apple Pay and Google Pay.
    Turned off by CONFIG.cardCheckout = false, or when CONFIG.cloud is empty.
    ===================================================================== */
+if (/^(capacitor|ionic):$/.test(location.protocol)) document.documentElement.classList.add("in-app");
 const Pay = (() => {
   const C = (typeof CONFIG !== "undefined" && CONFIG.cloud) || {};
   const on = !!(C.url && C.key) && (typeof CONFIG === "undefined" || CONFIG.cardCheckout !== false);

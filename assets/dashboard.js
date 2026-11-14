@@ -17,6 +17,16 @@
   user = await Cloud.user();
   if (!user) { location.replace("account.html?next=" + encodeURIComponent(location.pathname.split("/").pop() + location.search)); return; }
   $("#dWho").textContent = user.email || "";
+  /* profile button: initials from the email, like Wix and Squarespace */
+  const initials = (user.email || "?").split("@")[0].split(/[._-]+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "?";
+  $("#dInit").textContent = $("#dInit2").textContent = initials;
+  const openMe = () => { $("#dPlanSum").textContent = sites.some(s => s.plan === "monthly") ? "Website plan · $" + monthly + "/month" : sites.some(s => s.plan === "owned") ? "Owned site" : "Free plan"; $("#dMe").showModal(); };
+  $("#dMeBtn").addEventListener("click", openMe); $("#dMeTab").addEventListener("click", openMe);
+  $("#dBill").addEventListener("click", async () => {
+    if (!sites.some(s => s.plan !== "free")) { $("#dMe").close(); const s = sites[0]; if (s) { cur = s; openPlans(s); } else location.href = "pricing.html"; return; }
+    if (Cloud.portal) { open(Cloud.portal, "_blank", "noopener"); return; }
+    try { await Pay.portal(); } catch (err) { $("#dMe").close(); say($("#dMsg"), err.message); }
+  });
   $("#dSetBase").textContent = $("#dClaimBase").textContent = "." + (Cloud.domain || "yourdomain.com");
 
   document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
@@ -45,7 +55,13 @@
   async function refresh() {
     try { sites = await Cloud.listSites() || []; }
     catch (e) { say($("#dMsg"), e.message); return; }
-    $("#dSites").innerHTML = sites.length ? sites.map(card).join("") : `<div class="panel empty" style="grid-column:1/-1"><h2>No sites yet</h2><p>Start from any of our templates. Designing is free.</p><a class="btn btn-grad" href="editor.html?new=1">Design my first site</a></div>`;
+    document.body.classList.toggle("no-sites", !sites.length);
+    $("#dSites").innerHTML = sites.length ? sites.map(card).join("") : `<div class="panel empty" style="grid-column:1/-1">
+      <svg class="empty-art" viewBox="0 0 240 150" aria-hidden="true"><defs><linearGradient id="eg" x1="0" x2="1"><stop offset="0" stop-color="#2EC5E0"/><stop offset="1" stop-color="#7FE6F2"/></linearGradient></defs><rect x="20" y="12" width="200" height="126" rx="14" fill="#0E151C" stroke="#1E2A33" stroke-width="2"/><circle cx="38" cy="28" r="4" fill="#2A3640"/><circle cx="51" cy="28" r="4" fill="#2A3640"/><circle cx="64" cy="28" r="4" fill="#2A3640"/><rect x="36" y="48" width="96" height="12" rx="6" fill="url(#eg)"/><rect x="36" y="68" width="140" height="7" rx="3.5" fill="#2A3640"/><rect x="36" y="81" width="118" height="7" rx="3.5" fill="#2A3640"/><rect x="36" y="102" width="62" height="20" rx="10" fill="url(#eg)"/><rect x="150" y="96" width="54" height="32" rx="8" fill="#16212A"/></svg>
+      <h2>Create your first website</h2><p>Pick a template, make it yours, and put it online for $${monthly} a month. Designing is free.</p>
+      <ol class="e-steps"><li><b>1</b>Pick a template</li><li><b>2</b>Add your words and photos</li><li><b>3</b>Publish to your own address</li></ol>
+      <a class="btn btn-grad" href="editor.html?new=1">Start with a template</a>
+      <p class="meta-line">Rather have us build it? <a href="pricing.html#new">See studio packages</a></p></div>`;
   }
   /* billing: Stripe's own page for changing a card, seeing receipts or cancelling */
   document.addEventListener("click", async e => {
@@ -80,7 +96,7 @@
     finally { b.textContent = label; }
   }));
   /* phone app: checkout opens in a sheet; when it closes, look for the new plan */
-  Pay.onClose(() => { $("#dPlans").open && $("#dPlans").close(); watchPlans(); });
+  try { Pay.onClose(() => { $("#dPlans").open && $("#dPlans").close(); watchPlans(); }); } catch (e) { /* not in the phone app */ }
   async function watchPlans() {
     const before = sites.map(s => s.plan).join();
     for (let i = 0; i < 6; i++) { await new Promise(r => setTimeout(r, 2500)); await refresh(); if (sites.map(s => s.plan).join() !== before) { say($("#dMsg"), "You're all set. Open the editor and press Publish to put your changes online.", "ok"); return true; } }
@@ -147,6 +163,7 @@
 
   /* ---------- account ---------- */
   $("#dAcct").addEventListener("click", () => {
+    $("#dMe").close();
     $("#dEmailForm").email.value = user.email || ""; $("#dPassForm").password.value = "";
     say($("#dEmailMsg"), ""); say($("#dPassMsg"), "");
     $("#dPortal").hidden = !(Pay.on || Cloud.portal); $("#dPortal").href = Cloud.portal || "#";

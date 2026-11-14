@@ -370,6 +370,7 @@ function openPreview(id) {
     t.addEventListener("click", () => pick(t));
     t.addEventListener("keydown", e => { const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; pick(n); n.focus(); } });
   });
+  $$("[data-tabjump]").forEach(a => a.addEventListener("click", e => { const t = $("#" + a.dataset.tabjump); if (t) { e.preventDefault(); pick(t); t.scrollIntoView({ block: "center" }); t.focus(); } }));
   const h = location.hash.slice(1), match = tabs.find(t => t.getAttribute("aria-controls") === "p-" + h);
   if (match) pick(match);
 })();

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>My sites · Seaside Haven Studios</title>
 <meta name="description" content="Edit, publish and manage your websites.">
 <meta name="robots" content="noindex">
@@ -19,18 +19,41 @@
 <body>
 <header class="app-top"><div class="wrap">
   <a class="brand" href="index.html" aria-label="Seaside Haven Studios home"><img class="brand-logo" src="assets/logo.svg" alt=""><span class="brand-name">My sites</span></a>
-  <div class="who"><span id="dWho"></span><button class="btn btn-ghost btn-sm install" type="button" id="dInstall">Install app</button><button class="btn btn-ghost btn-sm" type="button" id="dAcct">Account</button><button class="btn btn-ghost btn-sm" type="button" id="dOut">Sign out</button></div>
+  <div class="who">
+    <a class="btn btn-grad btn-sm top-new" href="editor.html?new=1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New site</a>
+    <button class="avatar" type="button" id="dMeBtn" aria-haspopup="dialog" aria-label="Your account"><span id="dInit">·</span></button>
+  </div>
 </div></header>
 <main class="app-main" id="main">
   <div class="wrap">
     <div class="app-head">
-      <div><h1>Your sites</h1><p>Edit, publish and manage everything in one place.</p></div>
-      <a class="btn btn-grad" href="editor.html?new=1">New site</a>
+      <div><h1 id="dHello">Your sites</h1><p>Edit, publish and manage everything in one place.</p></div>
     </div>
     <div class="msg" id="dMsg" role="status" hidden style="margin-bottom:18px"></div>
-    <div class="sites" id="dSites" aria-live="polite"></div>
+    <div class="sites" id="dSites" aria-live="polite"><div class="panel site skel"></div><div class="panel site skel"></div></div>
   </div>
 </main>
+
+<!-- phone: bottom tabs, like a native app -->
+<nav class="tabbar" aria-label="App">
+  <a href="dashboard.html" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18"/></svg><span>Sites</span></a>
+  <a href="editor.html?new=1" class="tab-new"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New site</span></a>
+  <button type="button" id="dMeTab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Account</span></button>
+</nav>
+
+<!-- profile menu -->
+<dialog class="dlg sheet" id="dMe" aria-labelledby="dWho">
+  <div class="me-head"><span class="avatar lg" aria-hidden="true"><span id="dInit2">·</span></span><div><b id="dWho"></b><small id="dPlanSum">Free plan</small></div></div>
+  <div class="me-list">
+    <button type="button" id="dAcct"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Account settings<i>Email and password</i></button>
+    <button type="button" id="dBill"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>Plans and billing<i>Card, receipts and cancelling</i></button>
+    <a href="pricing.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Pricing<i>$5 a month, or have us build it</i></a>
+    <a href="contact.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>Help<i>Talk to a real person</i></a>
+    <button type="button" class="install" id="dInstall"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Install the app<i>Add it to your home screen</i></button>
+    <button type="button" id="dOut" class="out"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/></svg>Sign out</button>
+  </div>
+  <button class="linkish dlg-x" type="button" data-close>Close</button>
+</dialog>
 
 <!-- choose a plan -->
 <dialog class="dlg wide" id="dPlans" aria-labelledby="dPlansT">

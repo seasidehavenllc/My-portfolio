@@ -72,3 +72,65 @@
 
 /* the hidden attribute always wins over display rules (sign-in steps toggle fields with it) */
 .auth [hidden] { display: none !important; }
+
+/* ---------- profile, menu sheet, bottom tabs ---------- */
+.app-top .who{gap:10px}
+.avatar{width:40px;height:40px;border-radius:50%;border:0;display:inline-grid;place-items:center;background:var(--grad);color:#03141A;font-weight:700;font-size:.92rem;letter-spacing:.02em;cursor:pointer;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px rgba(46,197,224,.45);flex:none}
+.avatar.lg{width:52px;height:52px;font-size:1.1rem;cursor:default}
+.top-new{gap:6px}
+.sheet{width:min(420px,calc(100vw - 24px))}
+.me-head{display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.me-head b{display:block;font-size:1rem;word-break:break-all}
+.me-head small{color:var(--muted);font-size:.84rem}
+.me-list{display:flex;flex-direction:column;padding-top:8px}
+.me-list>a,.me-list>button{display:grid;grid-template-columns:28px 1fr;align-items:center;column-gap:12px;text-align:left;padding:12px 6px;border:0;background:transparent;color:var(--text);font:inherit;font-weight:600;font-size:.98rem;text-decoration:none;border-radius:12px;cursor:pointer}
+.me-list>a:hover,.me-list>button:hover{background:var(--panel)}
+.me-list svg{color:var(--aqua);grid-row:span 2}
+.me-list i{grid-column:2;font-style:normal;font-weight:400;font-size:.82rem;color:var(--muted)}
+.me-list .out{color:#FFB49E;margin-top:6px;border-top:1px solid var(--line);border-radius:0;padding-top:16px}
+.me-list .out svg{color:#FFB49E}
+.me-list .install{display:none}.me-list .install.on{display:grid}
+.tabbar{display:none}
+.skel{min-height:180px;background:linear-gradient(100deg,var(--panel) 30%,rgba(255,255,255,.05) 50%,var(--panel) 70%);background-size:300% 100%;animation:skel 1.4s infinite linear}
+@keyframes skel{to{background-position:-150% 0}}
+.empty-art{width:min(260px,80%);height:auto;margin:0 auto 18px;display:block}
+.empty p{max-width:42ch;margin:0 auto}
+.e-steps{list-style:none;display:flex;justify-content:center;flex-wrap:wrap;gap:10px 18px;margin:22px 0 4px;font-size:.9rem;color:var(--muted)}
+.e-steps li{display:flex;align-items:center;gap:8px}
+.e-steps b{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:rgba(46,197,224,.15);color:var(--aqua);font-size:.8rem}
+.empty .meta-line{margin-top:16px}
+@media(max-width:700px){
+  .top-new{display:none}
+  .app-top .wrap{flex-wrap:nowrap;min-height:58px}
+  .app-main{padding:26px 0 calc(110px + env(safe-area-inset-bottom))}
+  .app-head{margin-bottom:18px}
+  .tabbar{display:grid;grid-template-columns:repeat(3,1fr);position:fixed;left:0;right:0;bottom:0;z-index:45;background:rgba(8,12,17,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+  .tabbar a,.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.7rem;font-weight:600;text-decoration:none;cursor:pointer}
+  .tabbar [aria-current]{color:var(--aqua)}
+  .tabbar .tab-new svg{width:44px;height:30px;padding:4px 11px;border-radius:999px;background:var(--grad);color:#03141A}
+  .sites{grid-template-columns:1fr}
+  .site{padding:18px}
+  .site-acts .btn{flex:1 1 auto}
+  .empty{padding:34px 20px}
+  /* dialogs become bottom sheets */
+  .dlg{width:100%;max-width:100%;margin:auto 0 0;border-radius:22px 22px 0 0;padding:22px 20px calc(18px + env(safe-area-inset-bottom));max-height:calc(100dvh - env(safe-area-inset-top) - 24px)}
+  .dlg.wide{width:100%}
+}
+/* the site-wide stylesheet hides .empty (search results); the dashboard's empty state must show */
+.sites .empty{display:block}
+/* plans sheet on phones: compact so both plans fit without scrolling */
+@media(max-width:560px){
+  #dPlans h2{font-size:1.3rem;margin-bottom:4px}
+  #dPlans > p{font-size:.92rem}
+  .plans{gap:14px;margin-top:14px}
+  .plan-c{padding:14px 16px;display:grid;grid-template-columns:1fr auto;align-items:baseline;column-gap:10px}
+  .plan-c h3,.plan-c .price{grid-row:1}
+  .plan-c .price{margin:0;justify-self:end}
+  .plan-c .price b{font-size:1.5rem}
+  .plan-c .price span{font-size:.82rem}
+  .plan-c ul{grid-column:1/-1;margin:8px 0 12px;gap:3px;font-size:.86rem}
+  .plan-c .btn{grid-column:1/-1}
+  #dPlansNote{font-size:.82rem;margin-top:10px!important}
+}
+.app-top .who .avatar span{color:inherit;max-width:none;overflow:visible}
+.e-steps{flex-direction:column;align-items:flex-start;width:max-content;max-width:100%;margin-inline:auto}

@@ -151,3 +151,12 @@ body.previewing .ed-side,body.previewing .ed-fab,body.previewing .ed-secbar{disp
   .ed-tlist{grid-template-columns:1fr 1fr}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* phones and the iPhone app: clear the notch and home bar, no page bounce */
+dialog{margin:auto}
+.ed-top{padding-top:max(10px,env(safe-area-inset-top))}
+.ed-pay{max-height:calc(100dvh - 32px)}
+html.in-app,html.in-app body{overscroll-behavior:none}
+html.in-app a,html.in-app button{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+@media (pointer:coarse){input,select,textarea{font-size:16px !important}}
+@media(max-width:900px){.ed-side{padding-bottom:env(safe-area-inset-bottom)}}
