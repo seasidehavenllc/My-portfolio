@@ -18,7 +18,8 @@ const Cloud = (() => {
     const m = String(msg || "");
     if (/invalid login|invalid_credentials/i.test(m)) return "That email and password don't match.";
     if (/already registered|already exists|user_already_exists/i.test(m)) return "There's already an account with that email. Try signing in.";
-    if (/email not confirmed/i.test(m)) return "Please confirm your email first. Check your inbox for our link.";
+    if (/email not confirmed/i.test(m)) return "Please confirm your email first. Check your inbox for our code.";
+    if (/token has expired|otp_expired|invalid.*(otp|token)/i.test(m)) return "That code didn't work or has expired. Check it, or send a new one.";
     if (/password.*(at least|short|weak)/i.test(m)) return "Please use a longer password (at least 8 characters).";
     if (/sites_slug_key|duplicate key.*slug/i.test(m)) return "That address is taken. Please pick another.";
     if (/sites_custom_domain_key|duplicate key.*custom_domain/i.test(m)) return "That domain is already connected to another site.";
@@ -80,6 +81,12 @@ const Cloud = (() => {
       keep(stamp(await call("/auth/v1/token?grant_type=password", { method: "POST", body: JSON.stringify({ email, password }) }, false)));
     },
     async signOut() { try { await call("/auth/v1/logout", { method: "POST" }); } catch (e) { /* signing out locally is what matters */ } keep(null); },
+    /* email codes: sign-up confirmation and password reset happen with a 6-digit code typed in
+       the app or site, so nobody is sent away to a browser */
+    async verifyCode(email, token, type) {
+      keep(stamp(await call("/auth/v1/verify", { method: "POST", body: JSON.stringify({ type, email, token }) }, false)));
+    },
+    async resendCode(email) { await call("/auth/v1/resend", { method: "POST", body: JSON.stringify({ type: "signup", email }) }, false); },
     async resetPassword(email) { await call("/auth/v1/recover?redirect_to=" + encodeURIComponent(here("account.html")), { method: "POST", body: JSON.stringify({ email }) }, false); },
     async setPassword(password) { await call("/auth/v1/user", { method: "PUT", body: JSON.stringify({ password }) }); },
     async setEmail(email) { await call("/auth/v1/user?redirect_to=" + encodeURIComponent(here("dashboard.html")), { method: "PUT", body: JSON.stringify({ email }) }); },
