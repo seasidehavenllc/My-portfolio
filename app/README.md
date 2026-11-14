@@ -19,8 +19,11 @@ npm run android    # same, for Android Studio
 In Xcode, pick your team under Signing & Capabilities, then Product, Archive, and
 upload to App Store Connect. Run `npm run sync` again whenever the website changes.
 
-- App name: **Site Builder** · Bundle ID: `com.seasidehaven.sitebuilder`
-  (change both in `capacitor.config.json` before the first upload if you like).
+- App name: **Site Builder** · iPhone bundle ID: `com.seaside-haven.sitebuilder` (set in the
+  Xcode project, already registered in App Store Connect) · Android package:
+  `com.seasidehaven.sitebuilder` (Android doesn't allow dashes).
+- The app only uses Apple's standard HTTPS, so `ITSAppUsesNonExemptEncryption` is set to NO
+  in `Info.plist` and TestFlight won't ask the encryption question.
 - Icon and launch screen use the Seaside Haven logo.
 
 ## Payments in the app, and Apple's rules
