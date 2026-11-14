@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payment received · Seaside Haven Studios</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#05080C">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/dash.css">
+</head>
+<body>
+<!-- Where the phone app's card checkout lands. It confirms the payment with the server,
+     then the customer closes this sheet and the app shows their new plan. -->
+<main class="app-main" id="main">
+  <div class="wrap">
+    <div class="auth">
+      <h1 id="pT">Checking your payment…</h1>
+      <p class="lead" id="pL">This takes a second.</p>
+      <div class="panel"><p id="pM">When it's done, tap <b>Done</b> at the top to go back to the app.</p></div>
+    </div>
+  </div>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/pay.js"></script>
+<script>
+(async () => {
+  const s = new URLSearchParams(location.search).get("session") || "";
+  const done = (t, l) => { document.getElementById("pT").textContent = t; document.getElementById("pL").textContent = l; };
+  try {
+    const r = /^cs_/.test(s) && Pay.on ? await Pay.confirm(s) : null;
+    if (r && r.paid) done("Payment received. Thank you!", "Your plan is on. Go back to the app to publish your site.");
+    else done("Thank you!", "If you paid, your plan switches on within a minute.");
+  } catch (e) { done("Thank you!", "If you paid, your plan switches on within a minute."); }
+})();
+</script>
+</body>
+</html>

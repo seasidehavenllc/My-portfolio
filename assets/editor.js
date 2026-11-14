@@ -382,9 +382,9 @@
   }
   /* Designing is free. Keeping the site is paid, two ways (prices in CONFIG.editorPrice):
        buy      one payment, then the visitor downloads the site file. With a Stripe link in
-                CONFIG.pay.editorBuy, Stripe sends them back to editor.html?paid=<checkout session id>,
+                (CONFIG.pay || {}).editorBuy, Stripe sends them back to editor.html?paid=<checkout session id>,
                 which unlocks the download in this browser.
-       monthly  the studio hosts the site. With a Stripe link in CONFIG.pay.editorMonthly, Stripe sends
+       monthly  the studio hosts the site. With a Stripe link in (CONFIG.pay || {}).editorMonthly, Stripe sends
                 them to welcome.html?design=1, where they hand over their design.
      Without a link, either choice goes to the quote form with the design attached.
      Note: this site has no server, so the download unlock is checked in the browser only. */
@@ -399,8 +399,8 @@
   };
   $("#edPayX").addEventListener("click", () => payDlg.close());
   payDlg.addEventListener("click", e => { if (e.target === payDlg) payDlg.close(); });
-  $("#edPayGo").addEventListener("click", () => checkout(CONFIG.pay.editorBuy, "Download"));
-  $("#edPayMo").addEventListener("click", () => checkout(CONFIG.pay.editorMonthly, "Hosted"));
+  $("#edPayGo").addEventListener("click", () => checkout((CONFIG.pay || {}).editorBuy, "Download"));
+  $("#edPayMo").addEventListener("click", () => checkout((CONFIG.pay || {}).editorMonthly, "Hosted"));
   $("#edExport").addEventListener("click", async () => {
     if (CLOUD) {
       /* accounts are on: the dashboard handles plans, publishing and downloads */
@@ -411,8 +411,8 @@
     }
     if (isPaid()) return exportSite();
     $("#edBuyPrice").textContent = "$" + buy; $("#edMoPrice").textContent = "$" + monthly;
-    $("#edPayGo").textContent = CONFIG.pay.editorBuy ? `Buy for $${buy}` : `Request it · $${buy}`;
-    $("#edPayMo").textContent = CONFIG.pay.editorMonthly ? `Start for $${monthly}/month` : `Request it · $${monthly}/month`;
+    $("#edPayGo").textContent = (CONFIG.pay || {}).editorBuy ? `Buy for $${buy}` : `Request it · $${buy}`;
+    $("#edPayMo").textContent = (CONFIG.pay || {}).editorMonthly ? `Start for $${monthly}/month` : `Request it · $${monthly}/month`;
     $(".ed-plan.best").hidden = !monthly;
     $("#edPayLaunch").href = $("#edLaunch").href;
     payDlg.showModal();

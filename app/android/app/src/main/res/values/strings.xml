@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Site Builder</string>
+    <string name="title_activity_main">Site Builder</string>
+    <string name="package_name">com.seasidehaven.sitebuilder</string>
+    <string name="custom_url_scheme">com.seasidehaven.sitebuilder</string>
+</resources>
