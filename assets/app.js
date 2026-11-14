@@ -6,7 +6,7 @@ document.documentElement.classList.remove("no-js");
 if (CONFIG.cloud && CONFIG.cloud.url && CONFIG.cloud.key) {
   const signedIn = (() => { try { return !!localStorage.getItem("shs-session"); } catch (e) { return false; } })();
   const label = signedIn ? "My sites" : "Sign in", href = signedIn ? "dashboard.html" : "account.html";
-  document.querySelectorAll(".links, .mobile-menu").forEach(n => { const a = document.createElement("a"); a.href = href; a.textContent = label; n.appendChild(a); });
+  document.querySelectorAll(".links").forEach(n => { const a = document.createElement("a"); a.href = href; a.textContent = label; n.appendChild(a); });
   if ("serviceWorker" in navigator && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
 
@@ -32,17 +32,78 @@ function toast(text) {
 
 /* checkout buttons (data-pay) are handled by assets/pay.js */
 
-/* header, scroll progress, mobile menu */
+/* header and the phone menu */
 (() => {
-  const hdr = $("#hdr"), bar = $(".progress");
-  const onScroll = () => {
-    hdr.classList.toggle("scrolled", scrollY > 20);
-    if (bar) bar.style.width = (scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight)) * 100 + "%";
-  };
+  const hdr = $("#hdr");
+  const onScroll = () => hdr.classList.toggle("scrolled", scrollY > 20);
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
   const mb = $("#menuBtn"), mm = $("#mobileMenu");
-  mb.addEventListener("click", () => { const o = mm.classList.toggle("open"); mb.setAttribute("aria-expanded", o); hdr.classList.add("scrolled"); });
-  $$("a", mm).forEach(a => a.addEventListener("click", () => { mm.classList.remove("open"); mb.setAttribute("aria-expanded", false); }));
+  if (!mb || !mm) return;
+
+  const ic = d => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const I = {
+    home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+    tag: '<path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L3 13V3h10l7.6 7.6a2 2 0 010 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+    help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5M12 17h.01"/>',
+    chat: '<path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z"/>',
+    grid: '<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
+    pen: '<path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>',
+    redo: '<path d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/>',
+    lab: '<path d="M9 3h6M10 3v6L4 19a1 1 0 001 2h14a1 1 0 001-2l-6-10V3"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+    phone: '<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.4 1.8.7 2.7a2 2 0 01-.5 2.1L8 9.8a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.7.7a2 2 0 011.7 2z"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    chev: '<path d="M9 6l6 6-6 6"/>'
+  };
+  const here = (location.pathname.split("/").pop() || "index.html");
+  const cur = h => h === here ? ' aria-current="page"' : "";
+  const signedIn = (() => { try { return !!localStorage.getItem("shs-session"); } catch (e) { return false; } })();
+  const cloud = CONFIG.cloud && CONFIG.cloud.url && CONFIG.cloud.key;
+  const row = (h, i, t) => `<a class="mm-row" href="${h}"${cur(h)}><span class="mm-i">${ic(I[i])}</span><span>${t}</span>${ic(I.chev)}</a>`;
+  const tile = (h, i, t, sub) => `<a class="mm-tile" href="${h}"${cur(h)}><span class="mm-i">${ic(I[i])}</span><b>${t}</b><small>${sub}</small></a>`;
+
+  mm.innerHTML = `
+    <div class="mm-sheet" role="dialog" aria-modal="true" aria-label="Menu">
+      <div class="mm-top"><span class="mm-brand"><img src="assets/logo.svg" alt="" width="26" height="26">Menu</span>
+        <button class="mm-x" type="button" aria-label="Close menu">${ic(I.x)}</button></div>
+      <div class="mm-body">
+        <div class="mm-cta">
+          <a class="mm-main" href="contact.html">Get a free quote</a>
+          <a class="mm-alt" href="editor.html">Or build it yourself from $${(CONFIG.editorPrice && CONFIG.editorPrice.monthly) || 5}/mo</a>
+        </div>
+        <p class="mm-h">Services</p>
+        <div class="mm-tiles">
+          ${tile("templates.html", "grid", "Templates", "54 designs")}
+          ${tile("editor.html", "pen", "Site editor", "Free to try")}
+          ${tile("revamp.html", "redo", "Revamp", "40% off")}
+          ${tile("showcase.html", "lab", "Skills lab", "Live demos")}
+        </div>
+        <p class="mm-h">Explore</p>
+        <div class="mm-list">
+          ${row("index.html", "home", "Home")}
+          ${row("pricing.html", "tag", "Pricing")}
+          ${row("faq.html", "help", "Questions")}
+          ${row("contact.html", "chat", "Contact us")}
+        </div>
+      </div>
+      <div class="mm-foot">
+        ${cloud ? `<a class="mm-acct" href="${signedIn ? "dashboard.html" : "account.html"}"><span class="mm-av">${ic(I.user)}</span><span><b>${signedIn ? "My sites" : "Sign in"}</b><small>${signedIn ? "Edit and publish your sites" : "Or create a free account"}</small></span>${ic(I.chev)}</a>` : ""}
+        <a class="mm-call" data-href="tel" href="tel:${CONFIG.phone.replace(/[^\d+]/g, "")}">${ic(I.phone)}<span>${CONFIG.phone}</span></a>
+      </div>
+    </div>`;
+  document.body.appendChild(mm);   /* out of the header, so it can cover the whole screen */
+
+  const set = o => {
+    mm.classList.toggle("open", o);
+    mb.setAttribute("aria-expanded", o);
+    document.documentElement.classList.toggle("mm-on", o);
+    if (o) setTimeout(() => $(".mm-x", mm).focus(), 50); else mb.focus({ preventScroll: true });
+  };
+  mb.addEventListener("click", () => set(!mm.classList.contains("open")));
+  $(".mm-x", mm).addEventListener("click", () => set(false));
+  mm.addEventListener("click", e => { if (e.target === mm || e.target.closest("a")) set(false); });   /* tap outside, or follow a link */
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && mm.classList.contains("open")) set(false); });
+  addEventListener("resize", () => { if (innerWidth > 1000 && mm.classList.contains("open")) set(false); });
 })();
 
 /* services dropdown: opens on hover (mouse) and click/keyboard (everyone) */
