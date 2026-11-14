@@ -72,7 +72,7 @@ const Cloud = (() => {
       try { return await call("/auth/v1/user"); } catch (e) { return null; }
     },
     async signUp(email, password) {
-      const s = await call("/auth/v1/signup?redirect_to=" + encodeURIComponent(here("dashboard.html")), { method: "POST", body: JSON.stringify({ email, password }) }, false);
+      const s = await call("/auth/v1/signup?redirect_to=" + encodeURIComponent(here(web ? "dashboard.html" : "confirmed.html")), { method: "POST", body: JSON.stringify({ email, password }) }, false);
       if (s && s.access_token) { keep(stamp(s)); return "in"; }
       return "confirm"; // email confirmation is on: they finish from the link we email
     },
