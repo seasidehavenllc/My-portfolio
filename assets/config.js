@@ -21,8 +21,13 @@ const CONFIG = {
        Hostinger $2.99 intro that renews at $10.99, WordPress.com Personal $4 yearly ($5 after year one).
        monthly: we host their site. 5 is under a third of Wix's cheapest plan, with no yearly contract.
        buy:     they pay once and download the site file. 49 is less than three months of Wix Light.
-                Set buy to 0 to make the download free. */
-  editorPrice: { monthly: 5, buy: 49 },
+                Set buy to 0 to make the download free.
+       pro:     the Pro plan: hosting plus every integration (analytics, live chat, buy buttons,
+                newsletter, custom embeds, Zapier). Wix's plans with these start at $29 a month.
+                The Website plan includes the basic integrations (contact form inbox, maps, booking).
+                Which integrations each plan includes is decided in the database
+                (backend/supabase/migrations/0004_integrations.sql) and listed in assets/integrations.js. */
+  editorPrice: { monthly: 5, pro: 15, buy: 49 },
 
   /* The Free plan. Every site starts free and can be published without paying, within these limits.
      Paying lifts them: every design, no badge, your own domain, more sites.

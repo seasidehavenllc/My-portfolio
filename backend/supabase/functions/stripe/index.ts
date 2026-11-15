@@ -13,10 +13,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-type Price = { name: string; cents: number; monthly?: boolean; site?: "monthly" | "owned"; desc?: string };
+type Price = { name: string; cents: number; monthly?: boolean; site?: "monthly" | "owned"; tier?: "website" | "pro"; desc?: string };
 // Keep these in step with the prices shown on the site (CONFIG.editorPrice and the pricing pages).
 const PRICES: Record<string, Price> = {
-  editorMonthly: { name: "Website plan", cents: 500, monthly: true, site: "monthly", desc: "Your site online at your own address. Cancel any time." },
+  editorMonthly: { name: "Website plan", cents: 500, monthly: true, site: "monthly", tier: "website", desc: "Your site online at your own address. Cancel any time." },
+  editorPro: { name: "Pro plan", cents: 1500, monthly: true, site: "monthly", tier: "pro", desc: "Your site online with every integration: analytics, chat, buy buttons, newsletter and more. Cancel any time." },
   editorBuy: { name: "Website, bought outright", cents: 4900, site: "owned", desc: "Download your finished site and host it anywhere." },
   launch: { name: "Launch: template website", cents: 44900, desc: "One of our templates customized to your brand, live in about a week." },
   business: { name: "Business website, 50% deposit", cents: 75000, desc: "Deposit on a $1,499 custom website. The rest is due at launch." },
@@ -48,9 +49,9 @@ function form(o: Record<string, unknown>, pre = "", out = new URLSearchParams())
   }
   return out;
 }
-async function stripe(path: string, body?: Record<string, unknown>) {
+async function stripe(path: string, body?: Record<string, unknown>, method?: string) {
   const r = await fetch("https://api.stripe.com/v1/" + path, {
-    method: body ? "POST" : "GET",
+    method: method ?? (body ? "POST" : "GET"),
     headers: { Authorization: "Bearer " + KEY(), "Content-Type": "application/x-www-form-urlencoded" },
     body: body ? form(body) : undefined,
   });
@@ -92,14 +93,19 @@ async function applySession(s: Record<string, any>) {
   const item = PRICES[String(s.metadata?.item ?? "")];
   if (!item?.site) return;
   const change: Record<string, unknown> = { stripe_customer: s.customer ?? null };
-  if (item.site === "monthly") { change.plan = "monthly"; change.stripe_subscription = s.subscription ?? null; }
-  else {
-    // buying outright never switches off a running monthly plan
-    const { data } = await db.from("sites").select("plan").eq("id", site).maybeSingle();
-    if (data && data.plan !== "monthly") change.plan = "owned";
-  }
+  const { data: before } = await db.from("sites").select("plan, stripe_subscription").eq("id", site).maybeSingle();
+  if (item.site === "monthly") { change.plan = "monthly"; change.tier = item.tier ?? "website"; change.stripe_subscription = s.subscription ?? null; }
+  else if (before && before.plan !== "monthly") change.plan = "owned"; // buying outright never switches off a running monthly plan
   const { error } = await db.from("sites").update(change).eq("id", site);
   if (error) throw error;
+  // Switching between the Website and Pro plans is a new checkout, so the site's old subscription is
+  // cancelled here, with the unused days credited to the customer's next invoice. This runs after the
+  // site points at the new subscription, so the old one's cancellation event leaves the site alone.
+  const old = before?.stripe_subscription;
+  if (item.site === "monthly" && old && s.subscription && old !== s.subscription) {
+    try { await stripe("subscriptions/" + encodeURIComponent(old) + "?prorate=true", undefined, "DELETE"); }
+    catch (e) { console.error("cancel old plan", old, e); /* already cancelled: nothing to do */ }
+  }
 }
 
 async function onEvent(body: string) {
@@ -111,7 +117,7 @@ async function onEvent(body: string) {
   let error = null;
   if (event.type === "checkout.session.completed") await applySession(o);
   else if (event.type === "customer.subscription.deleted") {
-    ({ error } = await db.from("sites").update({ plan: "free", stripe_subscription: null }).eq("stripe_subscription", o.id));
+    ({ error } = await db.from("sites").update({ plan: "free", tier: "website", stripe_subscription: null }).eq("stripe_subscription", o.id));
   } else if (event.type === "customer.subscription.updated") {
     // unpaid or paused subscriptions take the site offline; paying again brings it back
     const live = ["active", "trialing", "past_due"].includes(o.status);
@@ -131,8 +137,9 @@ async function checkout(req: Request, b: Record<string, any>) {
   if (item.site) {
     if (!user) return fail("Please sign in first.", 401);
     site = String(b.site ?? "");
-    const { data } = await db.from("sites").select("id, owner").eq("id", site).maybeSingle();
+    const { data } = await db.from("sites").select("id, owner, plan, tier").eq("id", site).maybeSingle();
     if (!UUID.test(site) || !data || data.owner !== user.id) return fail("That site isn't in your account.", 403);
+    if (item.site === "monthly" && data.plan === "monthly" && (data.tier ?? "website") === item.tier) return fail("This site is already on that plan.");
     // reuse their Stripe customer so every plan shows up on one billing page
     const { data: prev } = await db.from("sites").select("stripe_customer").eq("owner", user.id).not("stripe_customer", "is", null).limit(1);
     customer = prev?.[0]?.stripe_customer ?? null;

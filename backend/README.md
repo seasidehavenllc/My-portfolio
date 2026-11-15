@@ -6,8 +6,10 @@ This folder holds the parts of the site that run on servers. The website itself 
 | --- | --- | --- |
 | `supabase/migrations/0001_sites.sql` | Supabase project **site-builder** (already applied) | Customer accounts and one row per customer site: design, published page, address, own domain and plan. Customers can only see and change their own sites, and can never change their own plan. |
 | `supabase/migrations/0003_free_plan.sql` | Supabase (run once, see "Free plan" below) | The Free plan: a free site can go online at its free address with a starter design and a small badge. The limits live in `free_limits()` and are checked by the database, so they hold for the website and the app alike. |
+| `supabase/migrations/0004_integrations.sql` | Supabase (run once, see "Integrations" below) | Integrations customers switch on for their own site, the Pro tier, and the contact form inbox. Decides which integrations each plan includes (`site_addons()`), so nothing can be unlocked from the browser. |
+| `supabase/functions/forms` | Supabase Edge Function (deploy once) | Receives contact form messages from customer sites, keeps out spam, saves them to the customer's inbox, and on Pro passes them on to the customer's Zapier or webhook. |
 | `supabase/functions/stripe` | Supabase Edge Function (already deployed) | All card payments. Opens Stripe's card checkout for every package and plan, switches a site's plan on after payment, opens Stripe's billing page, and handles cancellations. Prices are set in this file. |
-| `cloudflare/worker.js` | Cloudflare Worker | Serves `<name>.seasidehavenllc.com` and connected customer domains. It only serves sites on an active monthly plan. |
+| `cloudflare/worker.js` | Cloudflare Worker | Serves `<name>.seasidehavenllc.com` and connected customer domains. It only serves sites on an active plan, and adds the integrations each site has switched on as the page goes out. |
 
 On the website: `account.html` (sign in), `dashboard.html` (the customer's sites), `assets/cloud.js` (accounts), `assets/pay.js` (checkout buttons), `paid.html` (where the phone app's checkout lands) and the editor's Publish button. The phone app is in `../app`.
 
@@ -73,6 +75,33 @@ To change what Free includes, edit the numbers in `free_limits()` in that file a
 | No custom domain | Connect your own domain |
 
 If a paid plan is cancelled, the site drops back to Free: it stays online with the badge if it fits Free, and goes offline (nothing is deleted) if it doesn't. Paying again brings it straight back.
+
+### 7. Integrations and the Pro plan (one time, about 5 minutes)
+1. Open [Supabase, SQL Editor](https://supabase.com/dashboard/project/sspihydntrcmdaxjxjnu/sql/new), paste the whole of `supabase/migrations/0004_integrations.sql` and press **Run**. It should say "Success. No rows returned." (Run 0003 first if you haven't.)
+2. Redeploy the `stripe` function with the new file, so checkout knows the $15 Pro plan.
+3. Deploy the new `forms` function from `supabase/functions/forms/index.ts`, with **Verify JWT** turned off (the same as the `stripe` function).
+4. In Cloudflare, open the customer-sites Worker, **Edit code**, replace everything with `cloudflare/worker.js`, and **Deploy**. No new variables are needed.
+
+That's all. From then on customers switch integrations on themselves in **My sites, Integrations**, on the website and in the app, and they show on their live site within a minute.
+
+| Integration | What the customer adds | Plan |
+| --- | --- | --- |
+| Contact form inbox | Nothing: messages appear under **Messages** on their site card | Website ($5) |
+| Google Maps | Their address | Website ($5) |
+| Online booking | Their Calendly, Cal.com, Acuity, Square, Setmore, SimplyBook, zcal or TidyCal link | Website ($5) |
+| Google Analytics | Their G- measurement ID | Pro ($15) |
+| Meta Pixel | Their Pixel ID | Pro ($15) |
+| Buy button | A Stripe, Square, PayPal or Gumroad payment link | Pro ($15) |
+| Mailchimp newsletter | Their Mailchimp sign-up form link | Pro ($15) |
+| Live chat | Their Tawk.to direct chat link or Crisp website ID | Pro ($15) |
+| Custom embed | Any embed code (YouTube, Google Forms, Typeform...) | Pro ($15) |
+| Zapier and webhooks | A webhook address; every form message is sent there too | Pro ($15) |
+
+**Safety:** customers only ever paste their own links and IDs. The Worker checks each one (for example a booking link must be on a booking site) and escapes everything, and custom embed code runs in a sealed frame that can't reach the rest of the page, visitors' cookies or your domain. Webhook addresses are never shown on the public site.
+
+**Switching plans:** moving between Website and Pro is a new checkout. When it goes through, the site's old subscription is cancelled and the unused days are credited to the customer's next bill, all automatically. Cancelling Pro (or Website) in Billing takes the site back to Free as before; the integration settings are kept for if they come back.
+
+**Moving an integration to another plan:** change the lists in `site_addons()` in `0004_integrations.sql` (run it again) and the `tier` in `assets/integrations.js`.
 
 ## Good to know
 
