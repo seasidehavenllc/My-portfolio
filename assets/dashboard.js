@@ -10,7 +10,10 @@
   const qp = new URLSearchParams(location.search);
   const say = (el, text, kind = "err") => { el.textContent = text; el.className = "msg " + kind; el.hidden = !text; };
   const EP = CONFIG.editorPrice || {}, monthly = +EP.monthly || 0, buy = +EP.buy || 0;
-  const PLAN = { free: ["Design only", "chip"], monthly: ["Live", "chip green"], owned: ["Owned", "chip sea"] };
+  const PLAN = { free: ["Free", "chip"], monthly: ["Live", "chip green"], owned: ["Owned", "chip sea"] };
+  /* the Free plan: a free site is online once it has been published, at its free address only */
+  const freeLive = s => s.plan === "free" && !!s.published_at;
+  const base = Cloud.domain || "yourdomain.com";
   let sites = [], user = null, cur = null;
 
   if (!Cloud.on) { say($("#dMsg"), "Customer accounts aren't switched on yet. You can still design for free in the editor.", "info"); return; }
@@ -36,17 +39,19 @@
   /* ---------- list ---------- */
   const when = d => d ? new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
   function card(s) {
-    const live = s.plan === "monthly" && s.published_at, addr = Cloud.address(s), [pl, cls] = PLAN[s.plan] || PLAN.free;
+    const live = (s.plan === "monthly" && s.published_at) || freeLive(s), addr = s.plan === "free" ? s.slug + "." + base : Cloud.address(s);
+    const [pl, cls] = freeLive(s) ? ["Free · Live", "chip green"] : PLAN[s.plan] || PLAN.free;
     const status = s.plan === "monthly" ? (s.published_at ? "Published " + when(s.published_at) : "Not published yet. Open the editor and press Publish.")
       : s.plan === "owned" ? (s.published_at ? "Ready to download" : "Open the editor and press Save for download.")
-      : "Edited " + when(s.updated_at) + ". Pick a plan to put it online.";
+      : freeLive(s) ? "Published free " + when(s.published_at) + ". Upgrade to remove the badge and use your own domain."
+      : "Edited " + when(s.updated_at) + ". Put it online free, or pick a plan.";
     return `<article class="panel site" data-id="${esc(s.id)}">
       <div class="site-top"><h2>${esc(s.name)}</h2><span class="${cls}">${pl}</span></div>
       ${live ? `<a class="addr" href="https://${esc(addr)}" target="_blank" rel="noopener">${esc(addr)} ↗</a>` : `<span class="addr off">${esc(addr)}</span>`}
       <p class="site-meta">${esc(status)}</p>
       <div class="site-acts">
         <a class="btn btn-grad btn-sm" href="editor.html?site=${encodeURIComponent(s.id)}">Edit</a>
-        ${s.plan === "free" ? `<button class="btn btn-ghost btn-sm" type="button" data-act="plans">Choose a plan</button>` : ""}
+        ${s.plan === "free" ? `<button class="btn btn-ghost btn-sm" type="button" data-act="plans">${freeLive(s) ? "Upgrade" : "Put it online"}</button>` : ""}
         ${s.plan !== "free" && s.published_at ? `<button class="btn btn-ghost btn-sm" type="button" data-act="download">Download</button>` : ""}
         ${s.plan !== "free" && (Pay.on || Cloud.portal) ? `<a class="btn btn-ghost btn-sm" data-billing href="${esc(Cloud.portal || "#")}" target="_blank" rel="noopener">Billing</a>` : ""}
         <button class="btn btn-ghost btn-sm" type="button" data-act="settings">Settings</button>
@@ -59,7 +64,7 @@
     $("#dSites").innerHTML = sites.length ? sites.map(card).join("") : `<div class="panel empty first" style="grid-column:1/-1">
       <div class="fan" aria-hidden="true"><div class="fan-c" data-tid="ember"></div><div class="fan-c" data-tid="harbor"></div><div class="fan-c" data-tid="velvet"></div></div>
       <h2>Your first site <em>starts here.</em></h2>
-      <p>Choose from ${typeof TEMPLATES !== "undefined" ? TEMPLATES.length : 54} designs made for real businesses. Designing is free; going live is $${monthly} a month.</p>
+      <p>Choose from ${typeof TEMPLATES !== "undefined" ? TEMPLATES.length : 54} designs made for real businesses. Your first site goes online free. Upgrade from $${monthly} a month for every design and your own domain.</p>
       <a class="e-go" href="new.html">Browse designs<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       <p class="meta-line">Rather have us build it? <a href="pricing.html#new">See studio packages</a></p></div>`;
     if (!sites.length && typeof tpRender === "function") document.querySelectorAll(".fan-c").forEach(el => {
@@ -87,6 +92,20 @@
     $("#dMoPrice").textContent = "$" + monthly; $("#dBuyPrice").textContent = "$" + buy;
     $("#dPayMo").href = `contact.html?design=1&plan=Hosted`; $("#dPayBuy").href = `contact.html?design=1&plan=Download`;
     $("#dPayMo").textContent = `Start for $${monthly}/month`; $("#dPayBuy").textContent = `Buy for $${buy}`;
+    $("#dAllN").textContent = typeof TEMPLATES !== "undefined" ? TEMPLATES.length : 54;
+    $("#dFreeAddr").textContent = s.slug + "." + base;
+    $("#dFreeBadge").hidden = !Free.badge;
+    /* the Free card: say plainly when this site can't use it, and why (the server checks the same things) */
+    const other = sites.filter(x => x.id !== s.id && freeLive(x)), full = !freeLive(s) && other.length >= Free.sites;
+    const why = !Free.ok(s.tpl) ? "This site uses a paid design. Switch to a starter design in the editor to publish free, or upgrade."
+      : full ? `Free includes ${Free.sites} published site${Free.sites === 1 ? "" : "s"}, and "${other[0].name}" is using it. Upgrade this one to publish it too.` : "";
+    const fb = $("#dPayFree");
+    fb.textContent = freeLive(s) && !why ? "Your current plan" : "Publish free";
+    fb.href = "editor.html?site=" + encodeURIComponent(s.id) + "&publish=1";
+    fb.setAttribute("aria-disabled", String(!!why || freeLive(s)));
+    $("#dFreeWhy").textContent = why; $("#dFreeWhy").hidden = !why;
+    $("#dFreeCard").hidden = s.plan !== "free";
+    $("#dPlans .plans").classList.toggle("three", s.plan === "free");
     say($("#dPlansMsg"), "");
     $("#dPlansNote").textContent = pay ? "Pay securely by credit or debit card, Apple Pay or Google Pay, then come straight back here." : "Online payment isn't set up yet, so this sends us a request and we'll be in touch.";
     $("#dPlans").showModal();
@@ -128,6 +147,10 @@
     const f = $("#dSetForm"); f.name.value = s.name; f.slug.value = s.slug;
     $("#dDomForm").domain.value = s.custom_domain || "";
     $("#dDomOff").hidden = !s.custom_domain; $("#dDns").hidden = !s.custom_domain; dnsRows(s);
+    /* your own domain is a paid feature: free sites see what it is and how to get it */
+    const paidOnly = s.plan === "free";
+    $("#dDomUp").hidden = !paidOnly; $("#dDomForm").hidden = paidOnly; $("#dDomNote").hidden = paidOnly;
+    if (paidOnly) $("#dDns").hidden = true;
     ["#dSetMsg", "#dDomMsg"].forEach(m => say($(m), ""));
     $("#dSet").showModal();
   }
@@ -141,9 +164,10 @@
       if (slug !== cur.slug && !(await Cloud.slugFree(slug))) return say($("#dSetMsg"), "That address is taken. Please pick another.");
       await Cloud.saveSite(cur.id, { name, slug });
       Object.assign(cur, { name, slug }); dnsRows(cur);
-      say($("#dSetMsg"), cur.plan === "monthly" ? "Saved. Your site is now at " + Cloud.address(cur) + "." : "Saved.", "ok"); refresh();
+      say($("#dSetMsg"), cur.plan === "monthly" || freeLive(cur) ? "Saved. Your site is now at " + (cur.plan === "free" ? slug + "." + base : Cloud.address(cur)) + "." : "Saved.", "ok"); refresh();
     } catch (err) { say($("#dSetMsg"), err.message); }
   });
+  $("#dDomUpGo").addEventListener("click", () => { $("#dSet").close(); openPlans(cur); });
   $("#dDomForm").addEventListener("submit", async e => {
     e.preventDefault();
     const d = Cloud.cleanDomain(e.target.domain.value);

@@ -5,6 +5,7 @@ This folder holds the parts of the site that run on servers. The website itself 
 | Piece | Where it runs | What it does |
 | --- | --- | --- |
 | `supabase/migrations/0001_sites.sql` | Supabase project **site-builder** (already applied) | Customer accounts and one row per customer site: design, published page, address, own domain and plan. Customers can only see and change their own sites, and can never change their own plan. |
+| `supabase/migrations/0003_free_plan.sql` | Supabase (run once, see "Free plan" below) | The Free plan: a free site can go online at its free address with a starter design and a small badge. The limits live in `free_limits()` and are checked by the database, so they hold for the website and the app alike. |
 | `supabase/functions/stripe` | Supabase Edge Function (already deployed) | All card payments. Opens Stripe's card checkout for every package and plan, switches a site's plan on after payment, opens Stripe's billing page, and handles cancellations. Prices are set in this file. |
 | `cloudflare/worker.js` | Cloudflare Worker | Serves `<name>.seasidehavenllc.com` and connected customer domains. It only serves sites on an active monthly plan. |
 
@@ -13,7 +14,7 @@ On the website: `account.html` (sign in), `dashboard.html` (the customer's sites
 ## How it works for a customer
 
 1. They design in the editor for free and press **Get my site**.
-2. They create an account, pick a free address such as `joesbakery.seasidehavenllc.com`, and choose a plan.
+2. They create an account, pick a free address such as `joesbakery.seasidehavenllc.com`, and choose a plan. **Free** puts it online straight away at that address, if it uses one of the starter designs.
 3. They pay by card, Apple Pay or Google Pay on Stripe's secure page, and the plan switches on by itself.
 4. **Monthly:** they press **Publish** and the site is live within a minute. They can edit and publish again any time, change their address or connect their own domain in Settings, and change their card or cancel in Billing. Cancelling takes the site offline at the end of the paid month.
 5. **Buy outright:** they press **Save for download** in the editor, then **Download** in their dashboard.
@@ -57,6 +58,21 @@ In Supabase, Authentication, URL Configuration, set **Site URL** to your website
 
 ### 5. Customer domains (optional, later)
 For customers who connect their own domain, turn on **SSL for SaaS / Custom Hostnames** for the zone (first 100 hostnames are free), set the fallback origin to any address on the domain, and route the Worker to it. Each customer domain is then added as a custom hostname.
+
+### 6. Free plan (one time, 1 minute)
+1. Open [Supabase, SQL Editor](https://supabase.com/dashboard/project/sspihydntrcmdaxjxjnu/sql/new).
+2. Paste the whole of `supabase/migrations/0003_free_plan.sql` and press **Run**. It should say "Success. No rows returned."
+
+To change what Free includes, edit the numbers in `free_limits()` in that file and run it again, and change `CONFIG.free` in `assets/config.js` to match (that copy only changes what the screens say).
+
+| Free | Paid ($5 a month) |
+| --- | --- |
+| 1 site online at `<name>.seasidehavenllc.com` | Every site you pay for |
+| 9 starter designs (all 54 free to try in the editor) | All 54 designs |
+| Small "Made with Seaside Haven Studios" badge | No badge |
+| No custom domain | Connect your own domain |
+
+If a paid plan is cancelled, the site drops back to Free: it stays online with the badge if it fits Free, and goes offline (nothing is deleted) if it doesn't. Paying again brings it straight back.
 
 ## Good to know
 

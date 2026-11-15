@@ -26,7 +26,7 @@ const Cloud = (() => {
     if (/sites_slug_check/i.test(m)) return "Addresses use 3 to 40 lowercase letters, numbers or dashes.";
     if (/sites_custom_domain_check/i.test(m)) return "That doesn't look like a domain. Use something like yourbusiness.com.";
     if (/rate limit|too many/i.test(m) || status === 429) return "Too many tries. Please wait a minute and try again.";
-    if (/reserved|limit of 20/i.test(m)) return m;
+    if (/reserved|limit of 20|paid plan|Free plan/i.test(m)) return m;
     return m || "Something went wrong. Please try again.";
   }
   async function call(path, opt = {}, auth = true) {
@@ -92,7 +92,7 @@ const Cloud = (() => {
     async setEmail(email) { await call("/auth/v1/user?redirect_to=" + encodeURIComponent(here("dashboard.html")), { method: "PUT", body: JSON.stringify({ email }) }); },
 
     /* sites (the database only ever shows people their own) */
-    listSites: () => call("/rest/v1/sites?select=id,name,slug,custom_domain,plan,published_at,updated_at,created_at&order=updated_at.desc"),
+    listSites: () => call("/rest/v1/sites?select=id,name,slug,custom_domain,plan,published_at,updated_at,created_at,tpl:design->>src&order=updated_at.desc"),
     async getSite(id) { const r = await call("/rest/v1/sites?id=eq." + encodeURIComponent(id) + "&select=*"); return r && r[0]; },
     async createSite(row) { const r = await call("/rest/v1/sites?select=id,slug", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(row) }); return r && r[0]; },
     saveSite: (id, patch) => call("/rest/v1/sites?id=eq." + encodeURIComponent(id), { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(patch) }),

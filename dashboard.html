@@ -48,7 +48,7 @@
   <div class="me-list">
     <button type="button" id="dAcct"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Account settings<i>Email and password</i></button>
     <button type="button" id="dBill"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>Plans and billing<i>Card, receipts and cancelling</i></button>
-    <a href="pricing.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Pricing<i>$5 a month, or have us build it</i></a>
+    <a href="pricing.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Pricing<i>Free, $5 a month, or have us build it</i></a>
     <a href="contact.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>Help<i>Talk to a real person</i></a>
     <button type="button" class="install" id="dInstall"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Install the app<i>Add it to your home screen</i></button>
     <button type="button" id="dOut" class="out"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/></svg>Sign out</button>
@@ -58,11 +58,15 @@
 
 <!-- choose a plan -->
 <dialog class="dlg wide" id="dPlans" aria-labelledby="dPlansT">
-  <h2 id="dPlansT">Make it yours</h2>
-  <p>Designing is free. Pick how you'd like to keep <b id="dPlansName"></b>.</p>
-  <div class="plans">
-    <div class="plan-c best"><span class="tag">Lowest to start</span><h3>Pay monthly</h3><p class="price"><b id="dMoPrice"></b><span>/month</span></p>
-      <ul><li>Your site goes online right away</li><li>Free address, or connect your own domain</li><li>Secure (SSL), fast and backed up</li><li>Edit and publish any time, cancel any time</li></ul>
+  <h2 id="dPlansT">Choose a plan</h2>
+  <p>Start free and upgrade when you're ready. Pick a plan for <b id="dPlansName"></b>.</p>
+  <div class="plans three">
+    <div class="plan-c" id="dFreeCard"><h3>Free</h3><p class="price"><b>$0</b><span>forever</span></p>
+      <ul><li>Online at <span id="dFreeAddr"></span></li><li><span data-free="templates"></span> starter designs</li><li><span data-free="sites"></span> published site</li><li class="dim" id="dFreeBadge">Shows a small "Made with Seaside Haven Studios" badge</li><li class="dim">No custom domain</li></ul>
+      <p class="plan-why" id="dFreeWhy" hidden></p>
+      <a class="btn btn-ghost" id="dPayFree" href="#">Publish free</a></div>
+    <div class="plan-c best"><span class="tag">Most popular</span><h3>Pay monthly</h3><p class="price"><b id="dMoPrice"></b><span>/month</span></p>
+      <ul><li>Every design, all <span id="dAllN"></span></li><li>No badge on your site</li><li>Connect your own domain</li><li>Secure (SSL), fast and backed up</li><li>Cancel any time</li></ul>
       <a class="btn btn-grad" id="dPayMo" href="#">Start monthly</a></div>
     <div class="plan-c"><h3>Buy it outright</h3><p class="price"><b id="dBuyPrice"></b><span>one time</span></p>
       <ul><li>Download your whole site as one file</li><li>Host it anywhere you like</li><li>No monthly fee, yours to keep</li></ul>
@@ -84,6 +88,7 @@
   </form>
   <h3>Your own domain</h3>
   <p class="meta-line" id="dDomNote">Already own a domain like yourbusiness.com? Connect it here. Included with the monthly plan.</p>
+  <div class="upsell" id="dDomUp" hidden><p>Your own domain, like yourbusiness.com, comes with the monthly plan. Free sites use the free address above.</p><button class="btn btn-grad btn-sm" type="button" id="dDomUpGo">See plans</button></div>
   <form class="f" id="dDomForm" novalidate>
     <div class="msg" id="dDomMsg" role="status" hidden></div>
     <label>Domain<input name="domain" placeholder="yourbusiness.com" autocapitalize="off" spellcheck="false"></label>

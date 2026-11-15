@@ -31,6 +31,10 @@ body.picking .nw-list{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 .nw-shot{position:relative;overflow:hidden;aspect-ratio:3/4;border-radius:14px;background:#0C1117;box-shadow:0 0 0 1px var(--line),0 12px 28px -14px rgba(0,0,0,.8);transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
 .nw-shot .scale{position:absolute;top:0;left:0;transform-origin:0 0;pointer-events:none}
 .nw-card:active .nw-shot{transform:scale(.98)}
+/* Free or Paid, on the corner of each design */
+.nw-shotw{position:relative}
+.nw-tag{position:absolute;bottom:8px;left:8px;z-index:2;display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:999px;font-size:.7rem;font-weight:700;line-height:1;background:rgba(5,8,12,.82);color:#F4F7F8;box-shadow:0 0 0 1px rgba(255,255,255,.16);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);pointer-events:none}
+.nw-tag.free{background:#4ADE9B;color:#03140C;box-shadow:none}
 .nw-card[aria-pressed="true"] .nw-shot{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--sea),0 14px 30px -12px rgba(46,197,224,.35)}
 .nw-meta{display:flex;flex-direction:column;gap:1px;padding:10px 2px 0}
 .nw-meta b{font-family:var(--serif);font-weight:400;font-size:1.3rem;line-height:1.1;color:var(--white)}
