@@ -7,10 +7,19 @@
 const Cloud = (() => {
   const C = (typeof CONFIG !== "undefined" && CONFIG.cloud) || {};
   const on = !!(C.url && C.key), base = (C.url || "").replace(/\/$/, "");
+  /* "Keep me signed in" (the default, and always in the app) keeps the session in localStorage;
+     otherwise it lives only until the browser is closed (sessionStorage). */
   const SK = "shs-session";
   let session = null;
-  try { session = JSON.parse(localStorage.getItem(SK)); } catch (e) { session = null; }
-  const keep = s => { session = s; try { s ? localStorage.setItem(SK, JSON.stringify(s)) : localStorage.removeItem(SK); } catch (e) { /* private mode: signed in for this page only */ } };
+  try { session = JSON.parse(sessionStorage.getItem(SK) || localStorage.getItem(SK)); } catch (e) { session = null; }
+  let remember = (() => { try { return !sessionStorage.getItem(SK); } catch (e) { return true; } })();
+  const keep = s => {
+    session = s;
+    try {
+      localStorage.removeItem(SK); sessionStorage.removeItem(SK);
+      if (s) (remember ? localStorage : sessionStorage).setItem(SK, JSON.stringify(s));
+    } catch (e) { /* private mode: signed in for this page only */ }
+  };
   const stamp = s => s && s.access_token ? Object.assign({}, s, { expires_at: s.expires_at || Math.floor(Date.now() / 1000) + (+s.expires_in || 3600) }) : null;
 
   /* friendlier words for the errors people actually hit */
@@ -40,7 +49,8 @@ const Cloud = (() => {
     let data = null; try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
     if (!r.ok) {
       if (r.status === 401 && auth) keep(null);
-      throw new Error(nice(data && (data.msg || data.message || data.error_description || data.error_code || data.error), r.status));
+      const err = new Error(nice(data && (data.msg || data.message || data.error_description || data.error_code || data.error), r.status));
+      err.status = r.status; throw err;
     }
     return data;
   }
@@ -50,7 +60,11 @@ const Cloud = (() => {
     try {
       const s = await call("/auth/v1/token?grant_type=refresh_token", { method: "POST", body: JSON.stringify({ refresh_token: session.refresh_token }) }, false);
       keep(stamp(s)); return session.access_token;
-    } catch (e) { keep(null); return null; }
+    } catch (e) {
+      /* only a rejected refresh token signs you out; no signal or a server hiccup keeps you signed in */
+      if (e.status === 400 || e.status === 401 || e.status === 403) keep(null);
+      return null;
+    }
   }
   /* email links must point at the website, also when this runs inside the phone app */
   const web = /^https?:$/.test(location.protocol), site = (typeof CONFIG !== "undefined" && CONFIG.siteUrl) || "";
@@ -76,6 +90,12 @@ const Cloud = (() => {
       const s = await call("/auth/v1/signup?redirect_to=" + encodeURIComponent(here(web ? "dashboard.html" : "confirmed.html")), { method: "POST", body: JSON.stringify({ email, password }) }, false);
       if (s && s.access_token) { keep(stamp(s)); return "in"; }
       return "confirm"; // email confirmation is on: they finish from the link we email
+    },
+    /* remember the email for next time, and whether to stay signed in */
+    lastEmail() { try { return localStorage.getItem("shs-last-email") || ""; } catch (e) { return ""; } },
+    remember(on, email) {
+      remember = on !== false;
+      try { if (email) localStorage.setItem("shs-last-email", email); } catch (e) { /* private mode */ }
     },
     async signIn(email, password) {
       keep(stamp(await call("/auth/v1/token?grant_type=password", { method: "POST", body: JSON.stringify({ email, password }) }, false)));
