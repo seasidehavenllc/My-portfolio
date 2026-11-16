@@ -53,6 +53,8 @@
   }
   /* With accounts on (CONFIG.cloud) and a site open (?site=<id>), every save also goes to the account. */
   let siteId = null, siteRow = null, cloudT = 0, cloudBusy = false, cloudDirty = false;
+  /* the Free plan only applies when accounts are on (that is what publishes sites) */
+  const FREE_ON = typeof Cloud !== "undefined" && Cloud.on && typeof Free !== "undefined";
   function cloudSave() {
     if (!siteId) return;
     cloudDirty = true; clearTimeout(cloudT);
@@ -149,9 +151,9 @@
   function listTemplates() {
     const q = $("#edTSearch").value.trim().toLowerCase(), cat = $("#edTCat").value, base = (S.src || "").split("~")[0];
     const words = tplSearchWords(q);
-    const found = TEMPLATES.filter(t => (!cat || t.cat === cat) && words.every(w => tplHay(t).includes(w)));
+    const found = TEMPLATES.filter(t => (!cat || t.cat === cat) && words.every(w => tplHay(t).includes(w))).sort((a, b) => FREE_ON ? Free.ok(b.id) - Free.ok(a.id) : 0);
     const list = $("#edTList");
-    list.innerHTML = found.length ? found.map(t => `<button class="ed-tcard" type="button" data-id="${t.id}" aria-pressed="${t.id === base}"><div class="thumb" data-tid="${t.id}"></div><div class="meta"><b>${t.name}</b><span>${t.industry}</span></div></button>`).join("") : `<p class="ed-hint">Nothing matches that. Try another word.</p>`;
+    list.innerHTML = found.length ? found.map(t => `<button class="ed-tcard" type="button" data-id="${t.id}" aria-pressed="${t.id === base}"><div class="thumb" data-tid="${t.id}"></div><div class="meta"><b>${t.name}</b><span>${t.industry}</span>${FREE_ON ? `<i class="ed-ttag${Free.ok(t.id) ? " free" : ""}">${Free.ok(t.id) ? "Free" : "Paid"}</i>` : ""}</div></button>`).join("") : `<p class="ed-hint">Nothing matches that. Try another word.</p>`;
     $$(".thumb", list).forEach(el => (thumbIO ? thumbIO.observe(el) : thumb(el)));
   }
   $("#edTCat").innerHTML = `<option value="">All categories</option>` + [...new Set(TEMPLATES.map(t => t.cat))].map(c => `<option>${c}</option>`).join("");
@@ -166,7 +168,8 @@
       S.P = next.P; S.src = next.src;
     } else S = next;
     pg = 0; commit(); syncPanels(); draw(false);
-    toast(`${tplGet(b.dataset.id).name} applied`);
+    toast(FREE_ON && !Free.ok(b.dataset.id) && !(siteRow && siteRow.plan !== "free") ? `${tplGet(b.dataset.id).name} is a paid design: free to try, $${monthly} a month to publish` : `${tplGet(b.dataset.id).name} applied`);
+    labelExport();
   });
 
   /* design */
@@ -392,7 +395,9 @@
   const PAID = "shs-editor-paid", EP = CONFIG.editorPrice || {}, buy = +EP.buy || 0, monthly = +EP.monthly || 0, payDlg = $("#edPay");
   const isPaid = () => { if (!buy) return true; try { return localStorage.getItem(PAID) === "1"; } catch (e) { return false; } };
   const CLOUD = typeof Cloud !== "undefined" && Cloud.on;
-  const labelExport = () => { $("#edExport").textContent = CLOUD ? (siteRow && siteRow.plan !== "free" ? (siteRow.plan === "monthly" ? "Publish" : "Save for download") : "Get my site") : isPaid() ? "Download" : "Get my site"; };
+  /* a free site that is already online republishes straight from here, as long as its design is a starter one */
+  const freeLive = () => !!(siteRow && siteRow.plan === "free" && siteRow.published_at && siteRow.html);
+  const labelExport = () => { $("#edExport").textContent = CLOUD ? (siteRow && siteRow.plan !== "free" ? (siteRow.plan === "monthly" ? "Publish" : "Save for download") : freeLive() && Free.ok(S.src) ? "Publish" : freeLive() ? "Upgrade to publish" : "Get my site") : isPaid() ? "Download" : "Get my site"; };
   const stripeRef = () => "editor-" + S.src.replace(/[^A-Za-z0-9_-]/g, "_");
   const checkout = (link, plan) => {
     save();
@@ -407,6 +412,7 @@
       /* accounts are on: the dashboard handles plans, publishing and downloads */
       save();
       if (!siteId) { location.href = "dashboard.html?claim=1"; return; }
+      if (freeLive() && Free.ok(S.src)) return publish();
       if (siteRow && siteRow.plan === "free") { clearTimeout(cloudT); try { await Cloud.saveSite(siteId, { design: S }); } catch (e) { /* the dashboard shows the last saved copy */ } location.href = "dashboard.html?plans=" + siteId; return; }
       return publish();
     }
@@ -448,8 +454,13 @@
     try {
       clearTimeout(cloudT);
       await Cloud.saveSite(siteId, { design: S, name: S.t.brand.slice(0, 80) || "My site", html, published_at: new Date().toISOString() });
-      toast(siteRow.plan === "monthly" ? "Published. Your changes are live within a minute." : "Saved. Your download is ready in your dashboard.");
-    } catch (e) { toast(/too large|payload|8000000|10000000/i.test(e.message || "") ? "Your photos are too large to publish. Try smaller photos." : "Couldn't publish. Check your connection and try again."); }
+      if (siteRow.plan === "free") { siteRow.published_at = siteRow.published_at || new Date().toISOString(); siteRow.html = html; labelExport(); }
+      toast(siteRow.plan === "monthly" ? "Published. Your changes are live within a minute." : siteRow.plan === "free" ? "Published free at " + Cloud.address({ slug: siteRow.slug }) + ". Live within a minute." : "Saved. Your download is ready in your dashboard.");
+    } catch (e) {
+      /* the server turned it down because of a Free plan limit: say why, then show the plans */
+      if (/paid plan|Free plan/i.test(e.message || "")) { toast(e.message); btn.disabled = false; setTimeout(() => { location.href = "dashboard.html?plans=" + siteId; }, 2200); return; }
+      toast(/too large|payload|8000000|10000000/i.test(e.message || "") ? "Your photos are too large to publish. Try smaller photos." : "Couldn't publish. Check your connection and try again.");
+    }
     btn.disabled = false;
   }
   async function exportSite() {

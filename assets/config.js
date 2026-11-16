@@ -21,8 +21,23 @@ const CONFIG = {
        Hostinger $2.99 intro that renews at $10.99, WordPress.com Personal $4 yearly ($5 after year one).
        monthly: we host their site. 5 is under a third of Wix's cheapest plan, with no yearly contract.
        buy:     they pay once and download the site file. 49 is less than three months of Wix Light.
-                Set buy to 0 to make the download free. */
-  editorPrice: { monthly: 5, buy: 49 },
+                Set buy to 0 to make the download free.
+       pro:     the Pro plan: hosting plus every integration (analytics, live chat, buy buttons,
+                newsletter, custom embeds, Zapier). Wix's plans with these start at $29 a month.
+                The Website plan includes the basic integrations (contact form inbox, maps, booking).
+                Which integrations each plan includes is decided in the database
+                (backend/supabase/migrations/0004_integrations.sql) and listed in assets/integrations.js. */
+  editorPrice: { monthly: 5, pro: 15, buy: 49 },
+
+  /* The Free plan. Every site starts free and can be published without paying, within these limits.
+     Paying lifts them: every design, no badge, your own domain, more sites.
+       sites:      how many free sites one account can have online at once
+       templates:  the starter designs a free site can be published with (ids from assets/templates.js).
+                   Every other design shows a "Paid" tag: free to try in the editor, paid to publish.
+       badge:      free sites show a small "Made with Seaside Haven Studios" badge
+     These control what the screens say. The limits are enforced in the database, so change the same
+     values in free_limits() in backend/supabase/migrations/0003_free_plan.sql (see backend/README.md). */
+  free: { sites: 1, templates: ["harbor", "ember", "velvet", "pulse", "counsel", "bloom", "tide", "saltwater", "driftwood"], badge: true },
 
   /* Customer accounts and automatic publishing (see backend/README.md).
      Leave url empty and the site works without accounts, exactly as before.
@@ -37,3 +52,12 @@ const CONFIG = {
   formEndpoint: ""
 };
 /* =================================================================== */
+
+/* The Free plan, for every page: Free.ok("harbor") says whether a design can be published free.
+   Anything marked data-free="templates" or data-free="sites" is filled with the numbers above. */
+const Free = (() => {
+  const F = CONFIG.free || {}, list = Array.isArray(F.templates) ? F.templates : [];
+  return { sites: +F.sites || 1, templates: list, badge: F.badge !== false, ok: id => list.includes(String(id || "").split("~")[0]) };
+})();
+document.addEventListener("DOMContentLoaded", () => document.querySelectorAll("[data-free]").forEach(el => { el.textContent = el.dataset.free === "sites" ? Free.sites : Free.templates.length; }));
+

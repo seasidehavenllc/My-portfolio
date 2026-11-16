@@ -35,7 +35,7 @@ const Cloud = (() => {
     if (/sites_slug_check/i.test(m)) return "Addresses use 3 to 40 lowercase letters, numbers or dashes.";
     if (/sites_custom_domain_check/i.test(m)) return "That doesn't look like a domain. Use something like yourbusiness.com.";
     if (/rate limit|too many/i.test(m) || status === 429) return "Too many tries. Please wait a minute and try again.";
-    if (/reserved|limit of 20/i.test(m)) return m;
+    if (/reserved|limit of 20|paid plan|Free plan/i.test(m)) return m;
     return m || "Something went wrong. Please try again.";
   }
   async function call(path, opt = {}, auth = true) {
@@ -112,11 +112,21 @@ const Cloud = (() => {
     async setEmail(email) { await call("/auth/v1/user?redirect_to=" + encodeURIComponent(here("dashboard.html")), { method: "PUT", body: JSON.stringify({ email }) }); },
 
     /* sites (the database only ever shows people their own) */
-    listSites: () => call("/rest/v1/sites?select=id,name,slug,custom_domain,plan,published_at,updated_at,created_at&order=updated_at.desc"),
+    async listSites() {
+      const cols = "id,name,slug,custom_domain,plan,published_at,updated_at,created_at,tpl:design->>src";
+      /* tier (Website or Pro) arrives with the integrations update; until the database has it, list without it */
+      try { return await call("/rest/v1/sites?select=" + cols + ",tier,form:integrations->form->>on&order=updated_at.desc"); }
+      catch (e) { if (e.status !== 400) throw e; return call("/rest/v1/sites?select=" + cols + "&order=updated_at.desc"); }
+    },
     async getSite(id) { const r = await call("/rest/v1/sites?id=eq." + encodeURIComponent(id) + "&select=*"); return r && r[0]; },
     async createSite(row) { const r = await call("/rest/v1/sites?select=id,slug", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(row) }); return r && r[0]; },
     saveSite: (id, patch) => call("/rest/v1/sites?id=eq." + encodeURIComponent(id), { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(patch) }),
     deleteSite: id => call("/rest/v1/sites?id=eq." + encodeURIComponent(id), { method: "DELETE" }),
+    /* contact form inbox (messages visitors sent through a site's contact form) */
+    messages: site => call("/rest/v1/form_messages?site=eq." + encodeURIComponent(site) + "&select=id,name,email,message,read,created_at&order=created_at.desc&limit=200"),
+    unread: () => call("/rest/v1/form_messages?read=is.false&select=site&limit=1000"),
+    markRead: site => call("/rest/v1/form_messages?site=eq." + encodeURIComponent(site) + "&read=is.false", { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ read: true }) }),
+    deleteMessage: id => call("/rest/v1/form_messages?id=eq." + encodeURIComponent(id), { method: "DELETE" }),
     slugFree: wanted => call("/rest/v1/rpc/slug_free", { method: "POST", body: JSON.stringify({ wanted }) }),
     address: site => site.custom_domain || (site.slug + "." + (C.domain || "yourdomain.com")),
     cleanSlug: s => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40),

@@ -62,6 +62,10 @@ select option{color:#000}
 .ed-tcard .thumb{aspect-ratio:16/9;pointer-events:none}
 .ed-tcard div.meta{display:flex;justify-content:space-between;gap:8px;padding:9px 12px;font-size:.86rem}
 .ed-tcard b{color:var(--white)}
+.ed-tcard div.meta{align-items:center}
+.ed-tcard div.meta span{flex:1;text-align:right}
+.ed-ttag{flex:none;font-style:normal;font-size:.68rem;font-weight:700;line-height:1;padding:3px 7px;border-radius:999px;background:var(--panel-2);color:var(--muted)}
+.ed-ttag.free{background:rgba(74,222,155,.14);color:var(--green)}
 .ed-pals{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .ed-pals button{aspect-ratio:1;border-radius:12px;border:0;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
 .ed-pals button[aria-pressed="true"]{outline:2px solid var(--white);outline-offset:2px}
