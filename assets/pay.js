@@ -69,7 +69,7 @@ document.querySelectorAll("[data-pay]").forEach(a => {
     e.preventDefault();
     if (a.getAttribute("aria-busy") === "true") return;
     const label = a.textContent; a.setAttribute("aria-busy", "true"); a.textContent = "Opening secure checkout…";
-    try { await Pay.start(a.dataset.pay, { ref: a.dataset.ref, from: location.pathname.split("/").pop() || "index.html", fallback: a.dataset.fallback }); }
+    try { await Pay.start(a.dataset.pay, { ref: a.dataset.ref, from: pageName(), fallback: a.dataset.fallback }); }
     catch (err) { if (typeof toast === "function") toast(err.message); else console.error(err); }
     finally { a.removeAttribute("aria-busy"); a.textContent = label; }
   });
