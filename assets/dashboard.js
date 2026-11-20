@@ -61,7 +61,7 @@
     $("#xSiteName").textContent = cur ? cur.name : "Seaside Studios";
     $("#xTh").style.background = cur ? swatch(cur) : "var(--grad)";
     $("#xSiteBtn").disabled = !sites.length;
-    const n = Object.values(unread).reduce((a, b) => a + b, 0);
+    const n = sites.reduce((a, s) => a + (unread[s.id] || 0), 0);
     $("#xBadge").textContent = n; $("#xBadge").hidden = !n;
   }
   $("#xSiteBtn").addEventListener("click", () => {
