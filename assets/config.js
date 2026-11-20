@@ -10,6 +10,11 @@ const CONFIG = {
      quote form. Set to false to turn checkout off. */
   cardCheckout: true,
 
+  /* The Seaside Studios iPhone app's App Store link, e.g. "https://apps.apple.com/us/app/seaside-studios/id1234567890".
+     Every "Download on the App Store" button on the site uses it. Leave it empty and those
+     buttons open the App Store search for the app instead. */
+  appStore: "",
+
   /* Your website's address. The phone app sends people here after they pay. */
   siteUrl: "https://seasidehavenllc.github.io/My-portfolio/",
 
