@@ -58,8 +58,11 @@
 
   /* the top bar's site picker */
   function topBar() {
-    $("#xSiteName").textContent = cur ? cur.name : "Seaside Studios";
-    $("#xTh").style.background = cur ? swatch(cur) : "var(--grad)";
+    /* no site yet: the app's own brand mark, the same logo and two-tone name as the website */
+    $("#xSiteName").classList.toggle("brand-name", !cur);
+    if (cur) $("#xSiteName").textContent = cur.name; else $("#xSiteName").innerHTML = "Seaside Haven <span>Studios</span>";
+    $("#xLogo").hidden = !!cur; $("#xTh").hidden = !cur;
+    if (cur) $("#xTh").style.background = swatch(cur);
     $("#xSiteBtn").disabled = !sites.length;
     const n = sites.reduce((a, s) => a + (unread[s.id] || 0), 0);
     $("#xBadge").textContent = n; $("#xBadge").hidden = !n;
