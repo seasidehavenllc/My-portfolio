@@ -33,6 +33,7 @@
           <div class="msg" id="aMsg" role="status" hidden></div>
           <label id="aEmailL">Email<input name="email" id="aEmail" type="email" inputmode="email" required autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next"></label>
           <label id="aPassL">Password<span class="pw"><input name="password" id="aPass" type="password" required minlength="8" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go"><button type="button" class="pw-eye" id="aEye" aria-label="Show password" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
+          <label id="aPass2L" hidden>Confirm password<span class="pw"><input name="password2" id="aPass2" type="password" minlength="8" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go"></span></label>
           <label class="check" id="aKeepL"><input type="checkbox" id="aKeep" checked> Keep me signed in</label>
           <label id="aCodeL" hidden>Code from the email<input name="code" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="10" placeholder="123456" style="letter-spacing:.3em;font-size:1.3rem"></label>
           <button class="btn btn-grad" type="submit" id="aGo">Sign in</button>
@@ -62,7 +63,7 @@
   /* show or hide the password */
   $("#aEye").addEventListener("click", () => {
     const on = form.password.type === "password";
-    form.password.type = on ? "text" : "password";
+    form.password.type = form.password2.type = on ? "text" : "password";
     $("#aEye").setAttribute("aria-pressed", on); $("#aEye").setAttribute("aria-label", on ? "Hide password" : "Show password");
   });
   let codeFor = "signup"; /* "signup" or "recovery" while mode is "code" */
@@ -73,6 +74,10 @@
     $("#aLinked").hidden = !(m === "code" && codeFor === "signup" && form.password.value);
     if (m === "code") { $("#aEmailL").hidden = true; $("#aPassL").hidden = true; $("#aForgot").hidden = true; form.code.value = ""; }
     else { $("#aEmailL").hidden = m === "newpass"; $("#aPassL").hidden = m === "reset"; $("#aForgot").hidden = m !== "in"; }
+    /* creating an account or choosing a new password: type it twice so a typo can't lock you out */
+    $("#aPass2L").hidden = !(m === "up" || m === "newpass");
+    form.password2.value = "";
+    form.password.enterKeyHint = $("#aPass2L").hidden ? "go" : "next";
     /* in the app you always stay signed in; on the web it's a choice */
     $("#aKeepL").hidden = inApp || !(m === "in" || m === "up");
     $$tabs().forEach(b => b.setAttribute("aria-selected", b.dataset.mode === m));
@@ -127,6 +132,7 @@
       go.disabled = false; return;
     }
     if (mode !== "reset" && password.length < 8) return say("Please use a password with at least 8 characters.");
+    if ((mode === "up" || mode === "newpass") && password !== form.password2.value) { form.password2.focus(); return say(form.password2.value ? "The passwords don't match. Please type them again." : "Please type your password again to confirm it."); }
     go.disabled = true; say("");
     if (mode === "in" || mode === "up") Cloud.remember(inApp || $("#aKeep").checked, email);
     try {
