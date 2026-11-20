@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>My sites · Seaside Haven Studios</title>
+<title>Seaside Studios</title>
 <meta name="description" content="Edit, publish and manage your websites.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#05080C">
@@ -17,43 +17,79 @@
 <link rel="stylesheet" href="assets/styles.css">
 <link rel="stylesheet" href="assets/dash.css">
 </head>
-<body>
-<header class="app-top"><div class="wrap">
-  <a class="brand" href="index.html" aria-label="Seaside Haven Studios home"><img class="brand-logo" src="assets/logo.svg" alt=""><span class="brand-name">My sites</span></a>
-  <div class="who">
-    <a class="btn btn-grad btn-sm top-new" href="new.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New site</a>
-    <button class="avatar" type="button" id="dMeBtn" aria-haspopup="dialog" aria-label="Your account"><span id="dInit">·</span></button>
-  </div>
-</div></header>
-<main class="app-main" id="main">
-  <div class="wrap">
-    <div class="app-head">
-      <div><h1 id="dHello">Your sites</h1><p>Edit, publish and manage everything in one place.</p></div>
-    </div>
-    <div class="msg" id="dMsg" role="status" hidden style="margin-bottom:18px"></div>
-    <div class="sites" id="dSites" aria-live="polite"><div class="panel site skel"></div><div class="panel site skel"></div></div>
-  </div>
+<body class="app2">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs><linearGradient id="axRg" x1="0" x2="1"><stop offset="0" stop-color="#2EC5E0"/><stop offset="1" stop-color="#7FE6F2"/></linearGradient></defs>
+  <symbol id="x-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="x-inbox" viewBox="0 0 24 24"><path d="M4 13h4l1.5 3h5L16 13h4"/><path d="M5.5 5h13L21 13v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/></symbol>
+  <symbol id="x-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="x-brush" viewBox="0 0 24 24"><path d="M14.5 4.5 19.5 9.5 10 19H5v-5z"/><path d="M12.5 6.5l5 5"/></symbol>
+  <symbol id="x-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></symbol>
+  <symbol id="x-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="x-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="x-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="x-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="x-share" viewBox="0 0 24 24"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8"/><path d="M5 12v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7"/></symbol>
+  <symbol id="x-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3z"/></symbol>
+  <symbol id="x-card" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></symbol>
+  <symbol id="x-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/></symbol>
+  <symbol id="x-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol>
+  <symbol id="x-rocket" viewBox="0 0 24 24"><path d="M5 15c-1.5 1.5-2 4-2 6 2 0 4.5-.5 6-2"/><path d="M9 15l-3-3c1.5-4.5 5.5-9 13-9 0 7.5-4.5 11.5-9 13z"/><circle cx="14.5" cy="9.5" r="1.8"/></symbol>
+  <symbol id="x-dl" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/></symbol>
+  <symbol id="x-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="x-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+  <symbol id="x-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="x-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></symbol>
+</svg>
+
+<header class="ax-top">
+  <button class="ax-site" type="button" id="xSiteBtn" aria-haspopup="dialog"><span class="ax-th" id="xTh"></span><b id="xSiteName">Your sites</b><svg class="xi" aria-hidden="true"><use href="#x-down"/></svg></button>
+  <span class="ax-sp"></span>
+  <a class="ax-new" href="new.html"><svg class="xi" aria-hidden="true"><use href="#x-plus"/></svg>New site</a>
+  <button class="avatar" type="button" id="dMeBtn" aria-haspopup="dialog" aria-label="Your account"><span id="dInit">·</span></button>
+</header>
+
+<main class="ax-main" id="main">
+  <div class="msg" id="dMsg" role="status" hidden></div>
+  <section class="ax-view on" id="vHome" data-view="home" aria-label="Home"><div class="ax-sk" style="height:300px"></div><div class="ax-sk" style="height:200px"></div></section>
+  <section class="ax-view" id="vInbox" data-view="inbox" aria-label="Inbox"></section>
+  <section class="ax-view" id="vDesign" data-view="design" aria-label="Design"></section>
+  <section class="ax-view" id="vManage" data-view="manage" aria-label="Manage"></section>
 </main>
 
-<!-- phone: bottom tabs, like a native app -->
-<nav class="tabbar" aria-label="App">
-  <a href="dashboard.html" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18"/></svg><span>Sites</span></a>
-  <a href="new.html" class="tab-new"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New site</span></a>
-  <button type="button" id="dMeTab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Account</span></button>
+<nav class="ax-tabs" id="xTabs" aria-label="App">
+  <span class="ax-ind" id="xInd" aria-hidden="true"></span>
+  <a href="#home" data-tab="home" aria-current="page"><svg class="xi" aria-hidden="true"><use href="#x-home"/></svg><span>Home</span></a>
+  <a href="#inbox" data-tab="inbox"><svg class="xi" aria-hidden="true"><use href="#x-inbox"/></svg><i class="ax-badge" id="xBadge" hidden></i><span>Inbox</span></a>
+  <a href="new.html" class="ax-plus" aria-label="New site"><b><svg class="xi" aria-hidden="true"><use href="#x-plus"/></svg></b></a>
+  <a href="#design" data-tab="design"><svg class="xi" aria-hidden="true"><use href="#x-brush"/></svg><span>Design</span></a>
+  <a href="#manage" data-tab="manage"><svg class="xi" aria-hidden="true"><use href="#x-grid"/></svg><span>Manage</span></a>
 </nav>
 
-<!-- profile menu -->
-<dialog class="dlg sheet" id="dMe" aria-labelledby="dWho">
-  <div class="me-head"><span class="avatar lg" aria-hidden="true"><span id="dInit2">·</span></span><div><b id="dWho"></b><small id="dPlanSum">Free plan</small></div></div>
-  <div class="me-list">
-    <button type="button" id="dAcct"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Account settings<i>Email and password</i></button>
-    <button type="button" id="dBill"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>Plans and billing<i>Card, receipts and cancelling</i></button>
-    <a href="pricing.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Pricing<i>Free, $5 or $15 a month, or have us build it</i></a>
-    <a href="contact.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>Help<i>Talk to a real person</i></a>
-    <button type="button" class="install" id="dInstall"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Install the app<i>Add it to your home screen</i></button>
-    <button type="button" id="dOut" class="out"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/></svg>Sign out</button>
+<!-- site picker -->
+<dialog class="dlg ax-sheet" id="xSites" aria-labelledby="xSitesT">
+  <h2 id="xSitesT">Your sites</h2>
+  <div class="ax-slist" id="xSiteList"></div>
+  <a class="ax-btn pri" href="new.html" style="margin-top:14px"><svg class="xi" aria-hidden="true"><use href="#x-plus"/></svg>New site</a>
+</dialog>
+
+<!-- account -->
+<dialog class="dlg ax-full" id="dMe" aria-labelledby="dWho">
+  <div class="ax-fbar"><button class="ax-ib" type="button" data-close aria-label="Close"><svg class="xi" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><b>Account</b><span style="width:40px"></span></div>
+  <div class="me-head"><span class="avatar lg" aria-hidden="true"><span id="dInit2">·</span></span><b id="dWho"></b><small id="dPlanSum">Free plan</small></div>
+  <p class="ax-lbl">Account</p>
+  <div class="me-list ax-grp">
+    <button type="button" id="dAcct"><span class="ax-ic c1"><svg class="xi" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>Email and password<svg class="xi ax-chev" aria-hidden="true"><use href="#x-right"/></svg></button>
+    <button type="button" id="dBill"><span class="ax-ic c2"><svg class="xi" aria-hidden="true"><use href="#x-card"/></svg></span>Plans and billing<svg class="xi ax-chev" aria-hidden="true"><use href="#x-right"/></svg></button>
+    <a href="pricing.html"><span class="ax-ic c3"><svg class="xi" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span>Pricing<svg class="xi ax-chev" aria-hidden="true"><use href="#x-right"/></svg></a>
   </div>
-  <button class="linkish dlg-x" type="button" data-close>Close</button>
+  <p class="ax-lbl">Help</p>
+  <div class="me-list ax-grp">
+    <a href="contact.html"><span class="ax-ic c4"><svg class="xi" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg></span>Talk to a real person<svg class="xi ax-chev" aria-hidden="true"><use href="#x-right"/></svg></a>
+    <a href="faq.html"><span class="ax-ic c6"><svg class="xi" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>Questions and answers<svg class="xi ax-chev" aria-hidden="true"><use href="#x-right"/></svg></a>
+    <button type="button" class="install" id="dInstall"><span class="ax-ic c1"><svg class="xi" aria-hidden="true"><use href="#x-dl"/></svg></span>Add the app to your home screen<svg class="xi ax-chev" aria-hidden="true"><use href="#x-right"/></svg></button>
+  </div>
+  <button type="button" id="dOut" class="ax-out">Sign out</button>
 </dialog>
 
 <!-- choose a plan -->

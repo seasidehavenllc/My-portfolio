@@ -57,3 +57,23 @@ body.picking .nw-list{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
   .nw-cats{padding:0 28px}
   .nw-list{padding:24px 28px 40px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:30px 20px}
 }
+
+/* ---------- same feel as the dashboard: glass bar, pill chips, cards that rise in ---------- */
+body.nw::before{content:"";position:fixed;inset:-10% -20% auto;height:420px;background:radial-gradient(40% 50% at 25% 40%,rgba(46,197,224,.18),transparent 70%),radial-gradient(35% 45% at 80% 30%,rgba(127,90,240,.12),transparent 70%);filter:blur(24px);pointer-events:none;z-index:0}
+.nw-top,.nw-main{position:relative;z-index:1}
+.nw-back{background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px var(--l1);transition:transform .15s var(--out)}
+.nw-back:active{transform:scale(.9)}
+.nw-cats{gap:8px;border-bottom:0;padding-bottom:4px}
+.nw-cats button{padding:0 14px;min-height:36px;border-radius:999px;background:var(--s2);box-shadow:inset 0 0 0 1px var(--l1);color:var(--text);transition:background .25s,color .25s,transform .15s var(--out)}
+.nw-cats button:active{transform:scale(.94)}
+.nw-cats button[aria-selected="true"]{background:var(--white);color:#05080C;box-shadow:none}
+.nw-cats button[aria-selected="true"] small{color:#45525C}
+.nw-cats button[aria-selected="true"]::after{display:none}
+.nw-shot{border-radius:20px;box-shadow:0 0 0 1px var(--l1),0 18px 40px -18px rgba(0,0,0,.9)}
+.nw-card{animation:appRise .55s var(--out) both}
+.nw-card:nth-child(2){animation-delay:.04s}.nw-card:nth-child(3){animation-delay:.08s}.nw-card:nth-child(4){animation-delay:.12s}.nw-card:nth-child(n+5){animation-delay:.16s}
+.nw-card:active .nw-shot{transform:scale(.96)}
+.nw-bar{border-radius:24px;background:rgba(18,27,35,.72);backdrop-filter:blur(24px) saturate(170%);-webkit-backdrop-filter:blur(24px) saturate(170%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 20px 50px rgba(0,0,0,.6);animation:nwUp .5s var(--spring) both}
+.nw-go{border-radius:16px;background:var(--grad);color:#03141A;transition:transform .15s var(--out)}
+.nw-go:active{background:var(--grad);transform:scale(.95)}
+@media(prefers-reduced-motion:reduce){.nw-card{animation:none}}
