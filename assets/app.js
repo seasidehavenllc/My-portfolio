@@ -23,6 +23,20 @@ $$('[data-href="tel"]').forEach(a => a.href = "tel:" + CONFIG.phone.replace(/[^\
 $$('[data-href="mail"]').forEach(a => a.href = "mailto:" + CONFIG.email);
 $$(".yr").forEach(el => el.textContent = new Date().getFullYear());
 
+/* the iPhone app: a "Get the app" band in every footer, and App Store buttons that use CONFIG.appStore */
+const APPLE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.7.9-.8 0-2-.9-3.3-.8-1.7 0-3.2 1-4.1 2.5-1.8 3.1-.5 7.6 1.3 10.1.8 1.2 1.8 2.6 3.1 2.5 1.2 0 1.7-.8 3.2-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8 0 0-2.5-1-2.5-4.3zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.6 2.8-1.4z"/></svg>';
+const appStoreUrl = () => CONFIG.appStore || "https://apps.apple.com/us/search?term=" + encodeURIComponent("Seaside Studios");
+const storeBadge = () => `<a class="as-badge" href="${appStoreUrl()}" target="_blank" rel="noopener">${APPLE}<span><small>Download on the</small>App Store</span></a>`;
+$$("[data-appstore]").forEach(el => el.outerHTML = storeBadge());
+if (!document.documentElement.classList.contains("in-app") && !/\/app\.html$/.test(location.pathname)) $$("footer > .wrap").forEach(w => {
+  const band = document.createElement("div"); band.className = "f-app";
+  band.innerHTML = `<a class="f-app-shot" href="app.html" aria-hidden="true" tabindex="-1"><img src="assets/app-home.jpg" alt="" loading="lazy" width="390" height="844"></a>
+    <div class="f-app-copy"><h4>Get the app</h4><p>Edit your site, answer new messages and publish, right from your iPhone.</p></div>
+    <div class="f-app-acts">${storeBadge()}<a class="f-app-more" href="app.html">See what it does</a></div>`;
+  w.insertBefore(band, w.querySelector(".f-grid"));
+  const col = w.querySelector(".f-grid > div:nth-child(2) ul"); if (col) col.insertAdjacentHTML("beforeend", '<li><a href="app.html">iPhone app</a></li>');
+});
+
 function toast(text) {
   let t = $(".toast");
   if (!t) { t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
@@ -51,6 +65,7 @@ function toast(text) {
     redo: '<path d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/>',
     lab: '<path d="M9 3h6M10 3v6L4 19a1 1 0 001 2h14a1 1 0 001-2l-6-10V3"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+    mobile: '<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>',
     phone: '<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.4 1.8.7 2.7a2 2 0 01-.5 2.1L8 9.8a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.7.7a2 2 0 011.7 2z"/>',
     x: '<path d="M6 6l12 12M18 6L6 18"/>',
     chev: '<path d="M9 6l6 6-6 6"/>'
@@ -84,6 +99,7 @@ function toast(text) {
           ${row("pricing.html", "tag", "Pricing")}
           ${row("faq.html", "help", "Questions")}
           ${row("contact.html", "chat", "Contact us")}
+          ${row("app.html", "mobile", "Get the app")}
         </div>
       </div>
       <div class="mm-foot">
