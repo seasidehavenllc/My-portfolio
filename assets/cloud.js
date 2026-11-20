@@ -43,7 +43,7 @@ const Cloud = (() => {
     if (/sites_slug_check/i.test(m)) return "Addresses use 3 to 40 lowercase letters, numbers or dashes.";
     if (/sites_custom_domain_check/i.test(m)) return "That doesn't look like a domain. Use something like yourbusiness.com.";
     if (/rate limit|too many/i.test(m) || status === 429) return "Too many tries. Please wait a minute and try again.";
-    if (/reserved|limit of 20|paid plan|Free plan/i.test(m)) return m;
+    if (/reserved|limit of 20|paid plan|Free plan|one-time plan|in your account/i.test(m)) return m;
     return m || "Something went wrong. Please try again.";
   }
   async function call(path, opt = {}, auth = true) {
@@ -131,7 +131,14 @@ const Cloud = (() => {
       try { return await call("/rest/v1/sites?select=" + cols + ",tier,form:integrations->form->>on&order=updated_at.desc"); }
       catch (e) { if (e.status !== 400) throw e; return call("/rest/v1/sites?select=" + cols + "&order=updated_at.desc"); }
     },
-    async getSite(id) { const r = await call("/rest/v1/sites?id=eq." + encodeURIComponent(id) + "&select=*"); return r && r[0]; },
+    /* every column but the published page (html): that only comes from downloadSite, for sites bought outright */
+    async getSite(id) {
+      const q = "/rest/v1/sites?id=eq." + encodeURIComponent(id) + "&select=id,name,slug,custom_domain,design,published_at,plan,created_at,updated_at";
+      try { const r = await call(q + ",tier,integrations"); return r && r[0]; }
+      catch (e) { if (e.status !== 400) throw e; const r = await call(q); return r && r[0]; }
+    },
+    /* the finished page as one file. The server only hands it over for sites on the Owned plan. */
+    downloadSite: site => call("/rest/v1/rpc/site_download", { method: "POST", body: JSON.stringify({ site }) }),
     async createSite(row) { const r = await call("/rest/v1/sites?select=id,slug", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(row) }); return r && r[0]; },
     saveSite: (id, patch) => call("/rest/v1/sites?id=eq." + encodeURIComponent(id), { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(patch) }),
     deleteSite: id => call("/rest/v1/sites?id=eq." + encodeURIComponent(id), { method: "DELETE" }),

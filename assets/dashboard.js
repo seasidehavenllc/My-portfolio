@@ -232,8 +232,17 @@
     }
   }
 
+  /* Downloads come only with Own it (bought outright). The server checks too (site_download).
+     Free sites see the download locked, with the way to get it. Website and Pro sites are hosted
+     by us and can't switch to Own it, so they get no row. */
+  function dlRow(s) {
+    if (s.plan === "owned") return s.published_at ? `<button class="ax-li" type="button" data-act="download"><span class="ax-ic c6">${ic("dl")}</span><span class="ax-tx"><b>Download your site</b><small>One file you can host anywhere</small></span>${ic("right", "ax-chev")}</button>` : "";
+    if (s.plan !== "free") return "";
+    return `<button class="ax-li" type="button" data-act="buy"><span class="ax-ic c6">${ic("dl")}</span><span class="ax-tx"><b>Download your site</b><small>Locked. Comes with Own it, $${buy} once</small></span>${ic("right", "ax-chev")}</button>`;
+  }
+
   function renderDesign() {
-    const s = cur, id = encodeURIComponent(s.id), paid = s.plan !== "free";
+    const s = cur, id = encodeURIComponent(s.id);
     $("#vDesign").innerHTML = `<h1 class="ax-h1 axr">Design</h1>
       <div class="ax-tiles axr">
         <a class="ax-tile" href="editor.html?site=${id}"><span class="ax-ic c1">${ic("brush")}</span><b>Open the editor</b><small>Words, photos, colors and fonts</small></a>
@@ -242,7 +251,7 @@
       <div class="ax-sech axr"><h2>Publishing</h2></div>
       <div class="ax-card ax-grp axr">
         <a class="ax-li" href="editor.html?site=${id}&publish=1"><span class="ax-ic c2">${ic("rocket")}</span><span class="ax-tx"><b>Publish your latest changes</b><small>${s.published_at ? "Last published " + when(s.published_at) : "Not published yet"}</small></span>${ic("right", "ax-chev")}</a>
-        ${paid && s.published_at ? `<button class="ax-li" type="button" data-act="download"><span class="ax-ic c6">${ic("dl")}</span><span class="ax-tx"><b>Download your site</b><small>One file you can host anywhere</small></span>${ic("right", "ax-chev")}</button>` : ""}
+        ${dlRow(s)}
         <button class="ax-li" type="button" data-act="share"><span class="ax-ic c3">${ic("link")}</span><span class="ax-tx"><b>Share your site</b><small>${esc(addrOf(s))}</small></span>${ic("right", "ax-chev")}</button>
       </div>
       <div class="ax-sech axr"><h2>Start something new</h2></div>
@@ -275,7 +284,7 @@
           <div class="ax-sub"><div>
             <button type="button" data-act="plans">${s.plan === "monthly" ? "Change plan" : "Choose a plan"}<span>${planName}</span></button>
             ${billing ? `<a data-billing href="${esc(Cloud.portal || "#")}" target="_blank" rel="noopener">Card, receipts and cancelling<span>Opens billing</span></a>` : ""}
-            ${s.plan !== "free" && s.published_at ? `<button type="button" data-act="download">Download your site<span>One file</span></button>` : ""}
+            ${s.plan === "owned" && s.published_at ? `<button type="button" data-act="download">Download your site<span>One file</span></button>` : s.plan === "free" ? `<button type="button" data-act="buy">Download your site<span>Only with Own it</span></button>` : ""}
           </div></div>
         </div>
         <button class="ax-li" type="button" data-act="integrations"><span class="ax-ic c4">${ic("plug")}</span><span class="ax-tx"><b>Add-ons</b><small>Contact form, booking, maps, chat and more</small></span>${ic("right", "ax-chev")}</button>
@@ -333,6 +342,7 @@
     if (act === "publish") { location.href = "editor.html?site=" + encodeURIComponent(cur.id) + "&publish=1"; return; }
     if (act === "pro") return openPlans(cur, "pro");
     if (act === "delete") { openSettings(cur); requestAnimationFrame(() => $("#dDel").scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" })); return; }
+    if (act === "buy") { openPlans(cur, "buy"); return; }
     ({ plans: openPlans, download, settings: openSettings, integrations: openInt })[act](cur);
   });
 
@@ -378,6 +388,7 @@
     $("#dPlansNote").textContent = pay ? "Pay securely by credit or debit card, Apple Pay or Google Pay, then come straight back here." : "Online payment isn't set up yet, so this sends us a request and we'll be in touch.";
     $("#dPlans").showModal();
     if (focus === "pro") requestAnimationFrame(() => $("#dProCard").scrollIntoView({ block: "nearest", behavior: "smooth" }));
+    if (focus === "buy") requestAnimationFrame(() => $("#dBuyRow").scrollIntoView({ block: "nearest", behavior: "smooth" }));
   }
   /* card checkout through Stripe; the server checks the site is theirs and holds the prices */
   [["#dPayMo", "editorMonthly"], ["#dPayPro", "editorPro"], ["#dPayBuy", "editorBuy"]].forEach(([id, item]) => $(id).addEventListener("click", async e => {
@@ -405,10 +416,11 @@
   /* ---------- download ---------- */
   async function download(s) {
     try {
-      const row = await Cloud.getSite(s.id);
-      if (!row || !row.html) return say($("#dMsg"), "Open the editor and press Save for download first.", "info");
+      if (s.plan !== "owned") { openPlans(s, "buy"); return; }
+      const html = await Cloud.downloadSite(s.id);
+      if (!html) return say($("#dMsg"), "Open the editor and press Save for download first.", "info");
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([row.html], { type: "text/html" })); a.download = (row.slug || "my-site") + ".html";
+      a.href = URL.createObjectURL(new Blob([html], { type: "text/html" })); a.download = (s.slug || "my-site") + ".html";
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     } catch (e) { say($("#dMsg"), e.message); }
   }

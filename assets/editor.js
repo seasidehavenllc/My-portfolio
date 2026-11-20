@@ -514,7 +514,7 @@
   const isPaid = () => { if (!buy) return true; try { return localStorage.getItem(PAID) === "1"; } catch (e) { return false; } };
   const CLOUD = typeof Cloud !== "undefined" && Cloud.on;
   /* a free site that is already online republishes straight from here, as long as its design is a starter one */
-  const freeLive = () => !!(siteRow && siteRow.plan === "free" && siteRow.published_at && siteRow.html);
+  const freeLive = () => !!(siteRow && siteRow.plan === "free" && siteRow.published_at);
   const labelExport = () => { $("#edExport").textContent = CLOUD ? (siteRow && siteRow.plan !== "free" ? (siteRow.plan === "monthly" ? "Publish" : "Save for download") : freeLive() && Free.ok(S.src) ? "Publish" : freeLive() ? "Upgrade to publish" : "Get my site") : isPaid() ? "Download" : "Get my site"; };
   const stripeRef = () => "editor-" + S.src.replace(/[^A-Za-z0-9_-]/g, "_");
   const checkout = (link, plan) => {
@@ -572,7 +572,7 @@
     try {
       clearTimeout(cloudT);
       await Cloud.saveSite(siteId, { design: S, name: S.t.brand.slice(0, 80) || "My site", html, published_at: new Date().toISOString() });
-      if (siteRow.plan === "free") { siteRow.published_at = siteRow.published_at || new Date().toISOString(); siteRow.html = html; labelExport(); }
+      if (siteRow.plan === "free") { siteRow.published_at = siteRow.published_at || new Date().toISOString(); labelExport(); }
       toast(siteRow.plan === "monthly" ? "Published. Your changes are live within a minute." : siteRow.plan === "free" ? "Published free at " + Cloud.address({ slug: siteRow.slug }) + ". Live within a minute." : "Saved. Your download is ready in your dashboard.");
     } catch (e) {
       /* the server turned it down because of a Free plan limit: say why, then show the plans */
