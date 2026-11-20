@@ -1343,6 +1343,13 @@ function tpPal(t, p) { return typeof p === "object" && p ? p : t.pal[p == null ?
 const tpEsc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 /* headlines may carry <em> and <br>, nothing else */
 const tpRich = s => tpEsc(s).replace(/&lt;(\/?)(em|br)\s*\/?&gt;/gi, "<$1$2>");
+/* where a photo sits in its box: [x%, y%, zoom], centered and filling the box by default */
+function tpCrop(t, key) {
+  const c = t.crop && t.crop[key], n = (v, lo, hi, d) => (typeof v === "number" && isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d);
+  return Array.isArray(c) ? [n(c[0], 0, 100, 50), n(c[1], 0, 100, 50), n(c[2], 1, 4, 1)] : [50, 50, 1];
+}
+/* zooming scales a copy of the box's own background around the same point the photo is anchored to */
+const tpZoom = c => `<i class="tp-zoom" style="transform:scale(${c[2]});transform-origin:${c[0]}% ${c[1]}%"></i>`;
 const tpUrl = u => "url('" + String(u).replace(/['"()\\\s<>]/g, ch => "%" + ch.charCodeAt(0).toString(16)) + "')";
 function tpLum(hex) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex || ""); if (!m) return 1;
@@ -1386,8 +1393,11 @@ function tpRender(t, pal, pg = 0) {
   /* editable text: tag, data path, class, rich (allows <em>/<br>), extra attributes */
   const T = (tag, path, cls = "", rich = false, attr = "") => `<${tag}${cls ? ` class="${cls}"` : ""}${attr} data-e="${path}"${rich ? " data-rich" : ""}>${rich ? tpRich(g(path)) : tpEsc(g(path)).replace(/\n/g, "<br>")}</${tag}>`;
   const vars = `--bg:${P.bg};--fg:${P.fg};--mu:${P.mu};--ac:${P.ac};--acfg:${P.acfg};--sf:${P.sf};--hi:${P.hi};--r:${+t.r || 0}px;--fh:${t.fh};--fb:${t.fb};--hw:${+t.hw || 600}`;
-  const artBg = (key, i) => (t.imgs && t.imgs[key] ? `${tpUrl(t.imgs[key])} center/cover no-repeat` : tpArt(t, i, P.art));
-  const img = (key, i, cls = "") => `<div class="tp-img ${cls}" data-img="${key}" style="background:${artBg(key, i)}"></div>`;
+  /* an uploaded photo can be moved and zoomed inside its box: t.crop[key] = [x%, y%, zoom] */
+  const crop = key => tpCrop(t, key);
+  const artBg = (key, i) => (t.imgs && t.imgs[key] ? `${tpUrl(t.imgs[key])} ${crop(key)[0]}% ${crop(key)[1]}%/cover no-repeat` : tpArt(t, i, P.art));
+  const zoom = key => (t.imgs && t.imgs[key] && crop(key)[2] > 1 ? tpZoom(crop(key)) : "");
+  const img = (key, i, cls = "") => `<div class="tp-img ${cls}${zoom(key) ? " tp-z" : ""}" data-img="${key}" style="background:${artBg(key, i)}">${zoom(key)}</div>`;
   const navL = t.nav.map(tpEsc), pages = ["Home", ...navL];
   const nav = `<div class="tp-nav">${T("a", "brand", "tp-logo", false, ' data-pg="0"')}<span class="tp-links">${navL.map((n, i) => `<a data-pg="${i + 1}" data-e="nav.${i}"${pg === i + 1 ? ' class="on"' : ""}>${n}</a>`).join("")}</span>${T("a", "cta", "tp-btn", false, ' data-pg="4"')}<button class="tp-burger" type="button" data-burger aria-label="Open menu"><i></i><i></i><i></i></button></div>
     <div class="tp-mnav">${pages.map((n, i) => `<a data-pg="${i}"${pg === i ? ' class="on"' : ""}>${n}</a>`).join("")}<a class="tp-btn" data-pg="4">${tpEsc(t.cta)}</a></div>`;
@@ -1401,7 +1411,7 @@ function tpRender(t, pal, pg = 0) {
   const hero = () => {
     if (t.layout === "split" || t.layout === "dash") return `<section class="tp-hero split"><div>${text}${stats()}</div>${widget}</section>`;
     if (t.layout === "center") return `<section class="tp-hero center"><div>${text}</div><div class="tp-trio">${img("hero1", 1)}${img("hero0", 2, "mid")}${img("hero2", 3)}</div></section>`;
-    if (t.layout === "full") return `<section class="tp-hero full" data-img="hero0" style="--art:${artBg("hero0", 0)}"><div class="tp-shade"></div><div class="tp-in">${text}${t.widget === "search" ? `<div class="tp-search">${g("searchF").map(x => `<span>${tpEsc(x)}</span>`).join("")}<i>Search</i></div>` : ""}</div></section>${stats(true)}`;
+    if (t.layout === "full") return `<section class="tp-hero full" data-img="hero0" style="--art:${artBg("hero0", 0)}">${zoom("hero0")}<div class="tp-shade"></div><div class="tp-in">${text}${t.widget === "search" ? `<div class="tp-search">${g("searchF").map(x => `<span>${tpEsc(x)}</span>`).join("")}<i>Search</i></div>` : ""}</div></section>${stats(true)}`;
     return `<section class="tp-hero editorial">${T("span", "kicker", "tp-kick")}${T("h1", "title", "", true)}<div class="tp-ed">${T("p", "sub", "tp-sub")}${btns}</div><div class="tp-row">${img("hero1", 0)}${img("hero0", 1, "wide")}${img("hero2", 2)}</div></section>`;
   };
   const feats = () => `<section class="tp-feats">${t.feats.map((f, i) => `<div><i>${String(i + 1).padStart(2, "0")}</i>${T("b", `feats.${i}.0`)}${T("p", `feats.${i}.1`)}</div>`).join("")}</section>`;
@@ -1428,7 +1438,7 @@ function tpRender(t, pal, pg = 0) {
     signup: () => `<section class="tp-signup"><div>${T("h2", "signup.0", "", true)}${T("p", "signup.1")}</div><div class="tp-signf"><span>Email address</span>${T("i", "signup.2")}</div></section>`
   };
   const foot = `<footer class="tp-foot"><a class="tp-logo" data-pg="0">${tpEsc(t.brand)}</a><span class="tp-flinks">${pages.map((n, i) => `<a data-pg="${i}">${n}</a>`).join("")}</span><small>© ${new Date().getFullYear()} ${tpEsc(t.brand)}</small></footer>`;
-  const head = (intro, i) => `<section class="tp-phead" style="--art:${artBg("head" + i, i + 6)}"><div><small><a data-pg="0">Home</a> / ${pages[pg]}</small><h1>${pages[pg]}</h1><p class="tp-sub">${tpEsc(intro)}</p></div><div class="tp-img" data-img="head${i}"></div></section>`;
+  const head = (intro, i) => `<section class="tp-phead" style="--art:${artBg("head" + i, i + 6)}"><div><small><a data-pg="0">Home</a> / ${pages[pg]}</small><h1>${pages[pg]}</h1><p class="tp-sub">${tpEsc(intro)}</p></div><div class="tp-img${zoom("head" + i) ? " tp-z" : ""}" data-img="head${i}">${zoom("head" + i)}</div></section>`;
   let body;
   if (pg === 1) body = head(t.sub, 1) + list(false) + feats() + cta();
   else if (pg === 2) body = head(`Why people choose ${t.brand}.`, 2) + `<section class="tp-zig">${t.feats.map((f, i) => `<div>${img("zig" + i, i + 7)}<div><i>${String(i + 1).padStart(2, "0")}</i><h2>${tpEsc(f[0])}</h2><p>${tpEsc(f[1])} ${tpEsc(t.sub)}</p><a class="tp-link" data-pg="4">Get started →</a></div></div>`).join("")}</section>` + stats(true) + quote() + cta();
