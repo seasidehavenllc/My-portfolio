@@ -130,7 +130,7 @@
 .tp-foot .tp-logo{color:var(--fg);font-size:18px}
 
 /* menu pages: every nav link, button and footer link switches page */
-.tp a{color:inherit;text-decoration:none;cursor:pointer}
+.tp a{text-decoration:none;cursor:pointer}.tp a:not(.tp-btn){color:inherit}
 .tp-links a{position:relative;transition:color .2s}
 .tp-links a:hover,.tp-links a.on{color:var(--fg)}
 .tp-links a.on::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:2px;border-radius:2px;background:var(--hi)}
