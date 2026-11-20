@@ -20,7 +20,7 @@
 
   if (!Cloud.on) { say($("#dMsg"), "Customer accounts aren't switched on yet. You can still design for free in the editor.", "info"); return; }
   user = await Cloud.user();
-  if (!user) { location.replace("account.html?next=" + encodeURIComponent(location.pathname.split("/").pop() + location.search)); return; }
+  if (!user) { location.replace("account.html?next=" + encodeURIComponent(pageName() + location.search)); return; }
   $("#dWho").textContent = user.email || "";
   /* profile button: initials from the email, like Wix and Squarespace */
   const initials = (user.email || "?").split("@")[0].split(/[._-]+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "?";

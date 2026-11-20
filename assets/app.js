@@ -28,7 +28,7 @@ const APPLE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><
 const appStoreUrl = () => CONFIG.appStore || "https://apps.apple.com/us/search?term=" + encodeURIComponent("Seaside Studios");
 const storeBadge = () => `<a class="as-badge" href="${appStoreUrl()}" target="_blank" rel="noopener">${APPLE}<span><small>Download on the</small>App Store</span></a>`;
 $$("[data-appstore]").forEach(el => el.outerHTML = storeBadge());
-if (!document.documentElement.classList.contains("in-app") && !/\/app\.html$/.test(location.pathname)) $$("footer > .wrap").forEach(w => {
+if (!document.documentElement.classList.contains("in-app") && pageName() !== "app.html") $$("footer > .wrap").forEach(w => {
   const band = document.createElement("div"); band.className = "f-app";
   band.innerHTML = `<a class="f-app-shot" href="app.html" aria-hidden="true" tabindex="-1"><img src="assets/app-home.jpg" alt="" loading="lazy" width="390" height="844"></a>
     <div class="f-app-copy"><h4>Get the app</h4><p>Edit your site, answer new messages and publish, right from your iPhone.</p></div>
@@ -70,7 +70,7 @@ function toast(text) {
     x: '<path d="M6 6l12 12M18 6L6 18"/>',
     chev: '<path d="M9 6l6 6-6 6"/>'
   };
-  const here = (location.pathname.split("/").pop() || "index.html");
+  const here = pageName();
   const cur = h => h === here ? ' aria-current="page"' : "";
   const signedIn = (() => { try { return !!localStorage.getItem("shs-session"); } catch (e) { return false; } })();
   const cloud = CONFIG.cloud && CONFIG.cloud.url && CONFIG.cloud.key;
