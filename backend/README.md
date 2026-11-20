@@ -47,14 +47,28 @@ To test without real money, paste a `sk_test_` key first and pay with card `4242
 Every new customer address now works the moment they publish, with no work from you.
 
 ### 4. Sign-in emails
-Sign-up and password reset use a 6-digit code typed into the app or site, so nobody is sent to a browser. In Supabase, Authentication, Emails, Templates, set the body of both **Confirm signup** and **Reset password** to:
+Sign-up and password reset use a 6-digit code typed into the app or site, so nobody is sent to a browser. Supabase's default emails only hold a link, so the code has to be added to the templates. In Supabase, Authentication, Emails, Templates:
+
+**Confirm signup**, subject `Your Seaside Haven Studios code`, body:
 
 ```html
-<h2>Your Seaside Haven code</h2>
-<p>Enter this code in the app to continue:</p>
+<h2>Your Seaside Haven Studios code</h2>
+<p>Enter this code in the app or on the website to finish creating your account:</p>
+<p style="font-size:32px;font-weight:700;letter-spacing:6px">{{ .Token }}</p>
+<p>Or <a href="{{ .ConfirmationURL }}">tap here to confirm your email</a>, then go back to the app.</p>
+<p>The code expires in one hour. If you didn't sign up, you can ignore this email.</p>
+```
+
+**Reset password**, subject `Your Seaside Haven Studios password code`, body:
+
+```html
+<h2>Reset your Seaside Haven Studios password</h2>
+<p>Enter this code in the app or on the website to choose a new password:</p>
 <p style="font-size:32px;font-weight:700;letter-spacing:6px">{{ .Token }}</p>
 <p>It expires in one hour. If you didn't ask for it, you can ignore this email.</p>
 ```
+
+Under Authentication, Sign In / Providers, Email, keep **Email OTP Length** at 6.
 
 In Supabase, Authentication, URL Configuration, set **Site URL** to your website and add `<your website>/*` under Redirect URLs. Before launch, add your own email sender under Authentication, Emails, SMTP Settings (Resend, Postmark or similar), because Supabase's built-in email only sends a few an hour.
 

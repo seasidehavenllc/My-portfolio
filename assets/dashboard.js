@@ -465,7 +465,7 @@
   /* ---------- account ---------- */
   $("#dAcct").addEventListener("click", () => {
     $("#dMe").close();
-    $("#dEmailForm").email.value = user.email || ""; $("#dPassForm").password.value = "";
+    $("#dEmailForm").email.value = user.email || ""; $("#dPassForm").password.value = $("#dPassForm").password2.value = "";
     say($("#dEmailMsg"), ""); say($("#dPassMsg"), "");
     $("#dPortal").hidden = !(Pay.on || Cloud.portal); $("#dPortal").href = Cloud.portal || "#";
     $("#dAcctDlg").showModal();
@@ -478,7 +478,8 @@
   $("#dPassForm").addEventListener("submit", async e => {
     e.preventDefault(); const p = e.target.password.value;
     if (p.length < 8) return say($("#dPassMsg"), "Please use at least 8 characters.");
-    try { await Cloud.setPassword(p); e.target.password.value = ""; say($("#dPassMsg"), "Password changed.", "ok"); } catch (err) { say($("#dPassMsg"), err.message); }
+    if (p !== e.target.password2.value) return say($("#dPassMsg"), "The passwords don't match. Please type them again.");
+    try { await Cloud.setPassword(p); e.target.password.value = e.target.password2.value = ""; say($("#dPassMsg"), "Password changed.", "ok"); } catch (err) { say($("#dPassMsg"), err.message); }
   });
 
   /* ---------- install as an app ---------- */
