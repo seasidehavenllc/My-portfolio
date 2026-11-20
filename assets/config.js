@@ -13,7 +13,7 @@ const CONFIG = {
   /* The Seaside Studios iPhone app's App Store link, e.g. "https://apps.apple.com/us/app/seaside-studios/id1234567890".
      Every "Download on the App Store" button on the site uses it. Leave it empty and those
      buttons open the App Store search for the app instead. */
-  appStore: "",
+  appStore: "https://apps.apple.com/us/app/seaside-studios/id0000000000",   // placeholder: swap in the real link once the app is listed
 
   /* Your website's address. The phone app sends people here after they pay. */
   siteUrl: "https://seasidehavenllc.github.io/My-portfolio/",
