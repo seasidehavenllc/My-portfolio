@@ -22,6 +22,14 @@ const Cloud = (() => {
   };
   const stamp = s => s && s.access_token ? Object.assign({}, s, { expires_at: s.expires_at || Math.floor(Date.now() / 1000) + (+s.expires_in || 3600) }) : null;
 
+  /* the password rules for new passwords (sign up, reset, change), in one place */
+  const PW_RULES = [
+    ["len", "At least 6 characters", p => p.length >= 6],
+    ["upper", "A capital letter", p => /[A-Z]/.test(p)],
+    ["num", "A number", p => /[0-9]/.test(p)],
+    ["sym", "A special character, like ! ? # or @", p => /[^A-Za-z0-9\s]/.test(p)]
+  ];
+  const PW_HINT = "at least 6 characters with a capital letter, a number and a special character";
   /* friendlier words for the errors people actually hit */
   function nice(msg, status) {
     const m = String(msg || "");
@@ -29,7 +37,7 @@ const Cloud = (() => {
     if (/already registered|already exists|user_already_exists/i.test(m)) return "There's already an account with that email. Try signing in.";
     if (/email not confirmed/i.test(m)) return "Please confirm your email first. Check your inbox for our code.";
     if (/token has expired|otp_expired|invalid.*(otp|token)/i.test(m)) return "That code didn't work or has expired. Check it, or send a new one.";
-    if (/password.*(at least|short|weak)/i.test(m)) return "Please use a longer password (at least 8 characters).";
+    if (/password.*(at least|short|weak|should contain)|weak_password/i.test(m)) return "Please choose a stronger password: at least 6 characters with a capital and a lowercase letter, a number and a special character.";
     if (/sites_slug_key|duplicate key.*slug/i.test(m)) return "That address is taken. Please pick another.";
     if (/sites_custom_domain_key|duplicate key.*custom_domain/i.test(m)) return "That domain is already connected to another site.";
     if (/sites_slug_check/i.test(m)) return "Addresses use 3 to 40 lowercase letters, numbers or dashes.";
@@ -82,6 +90,11 @@ const Cloud = (() => {
   const api = {
     on, domain: (C.domain || "").toLowerCase(), portal: C.portal || "", linkType: () => linkType,
     signedIn: () => !!session, token,
+    /* [{id, text, ok}] for each rule, and the first unmet rule's sentence (or "") */
+    passwordRules: p => PW_RULES.map(([id, text, test]) => ({ id, text, ok: test(p || "") })),
+    passwordProblem(p) {
+      return PW_RULES.every(([, , test]) => test(p || "")) ? "" : "Your password needs " + PW_HINT + ".";
+    },
     async user() {
       if (!session) return null;
       try { return await call("/auth/v1/user"); } catch (e) { return null; }

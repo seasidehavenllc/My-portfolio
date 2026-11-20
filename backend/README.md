@@ -70,6 +70,8 @@ Sign-up and password reset use a 6-digit code typed into the app or site, so nob
 
 Under Authentication, Sign In / Providers, Email, keep **Email OTP Length** at 6.
 
+Passwords for new accounts need at least 6 characters, a capital letter, a number and a special character. The app and site check this as people type. To have Supabase enforce it too, in the same Email settings set **Minimum password length** to 6 and **Password requirements** to "Lowercase, uppercase letters, digits and symbols" (Supabase has no option without lowercase, so this also asks for one lowercase letter. Almost every password has one; if not, the app explains what's missing).
+
 In Supabase, Authentication, URL Configuration, set **Site URL** to your website and add `<your website>/*` under Redirect URLs. Before launch, add your own email sender under Authentication, Emails, SMTP Settings (Resend, Postmark or similar), because Supabase's built-in email only sends a few an hour.
 
 ### 5. Customer domains (optional, later)

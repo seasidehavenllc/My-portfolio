@@ -465,7 +465,7 @@
   /* ---------- account ---------- */
   $("#dAcct").addEventListener("click", () => {
     $("#dMe").close();
-    $("#dEmailForm").email.value = user.email || ""; $("#dPassForm").password.value = $("#dPassForm").password2.value = "";
+    $("#dEmailForm").email.value = user.email || ""; $("#dPassForm").password.value = $("#dPassForm").password2.value = ""; dRules();
     say($("#dEmailMsg"), ""); say($("#dPassMsg"), "");
     $("#dPortal").hidden = !(Pay.on || Cloud.portal); $("#dPortal").href = Cloud.portal || "#";
     $("#dAcctDlg").showModal();
@@ -475,11 +475,13 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return say($("#dEmailMsg"), "Please enter a valid email.");
     try { await Cloud.setEmail(email); say($("#dEmailMsg"), "Check both inboxes. We sent a link to confirm the change.", "ok"); } catch (err) { say($("#dEmailMsg"), err.message); }
   });
+  const dRules = () => { $("#dRules").innerHTML = Cloud.passwordRules($("#dPassForm").password.value).map(r => '<li class="' + (r.ok ? "ok" : "") + '">' + r.text + "</li>").join(""); };
+  $("#dPassForm").password.addEventListener("input", dRules); dRules();
   $("#dPassForm").addEventListener("submit", async e => {
     e.preventDefault(); const p = e.target.password.value;
-    if (p.length < 8) return say($("#dPassMsg"), "Please use at least 8 characters.");
+    if (Cloud.passwordProblem(p)) return say($("#dPassMsg"), Cloud.passwordProblem(p));
     if (p !== e.target.password2.value) return say($("#dPassMsg"), "The passwords don't match. Please type them again.");
-    try { await Cloud.setPassword(p); e.target.password.value = e.target.password2.value = ""; say($("#dPassMsg"), "Password changed.", "ok"); } catch (err) { say($("#dPassMsg"), err.message); }
+    try { await Cloud.setPassword(p); e.target.password.value = e.target.password2.value = ""; dRules(); say($("#dPassMsg"), "Password changed.", "ok"); } catch (err) { say($("#dPassMsg"), err.message); }
   });
 
   /* ---------- install as an app ---------- */
