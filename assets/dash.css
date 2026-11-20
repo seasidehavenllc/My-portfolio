@@ -506,3 +506,8 @@ body:not(.app2) .app-top{position:sticky;z-index:40}
 .app-top .brand-name{white-space:nowrap}
 :where(.ax-view) section{padding:0}
 .app2 .to-top{display:none}
+/* phones: every sheet spans the full width. Some dialogs set a fixed width (the three-plan
+   picker, add-ons) that beat the phone rule above and left a gap on the right. */
+@media(max-width:700px){
+  dialog.dlg,dialog.dlg.wide,dialog.dlg.wide:has(.plans.three),dialog.dlg.int-dlg,dialog.dlg.sheet{width:100%;max-width:100%;left:0;right:0}
+}
