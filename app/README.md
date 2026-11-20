@@ -16,8 +16,10 @@ npm run ios        # copies the site in, then opens the Xcode project
 npm run android    # same, for Android Studio
 ```
 
-In Xcode, pick your team under Signing & Capabilities, then Product, Archive, and
-upload to App Store Connect. Run `npm run sync` again whenever the website changes.
+Merging to `main` builds the iPhone app and uploads it to TestFlight automatically
+(see [TESTFLIGHT.md](TESTFLIGHT.md) for the one-time setup). To do it by hand instead: in
+Xcode, pick your team under Signing & Capabilities, then Product, Archive, and upload to
+App Store Connect. Run `npm run sync` again whenever the website changes.
 
 - App name: **Seaside Studios** · iPhone bundle ID: `com.seasidehaven.sitebuilder` (set in the
   Xcode project, already registered in App Store Connect) · Android package:
