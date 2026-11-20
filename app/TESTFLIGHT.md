@@ -7,14 +7,15 @@ itself. You no longer need to pull, open Xcode, raise the build number, archive 
 - It takes about 15 to 25 minutes. Watch it under the repository's **Actions** tab,
   "iPhone app to TestFlight". Apple then needs another 5 to 30 minutes to process the build
   before it shows in TestFlight.
-- The build number goes up by one each time (13, 14, 15 and so on), one higher than the
-  highest build already in App Store Connect.
+- The build number counts 1, 2, 3 within each version. When you change the version
+  (say to 1.0.5), the next build starts again at 1. Apple never lets a number be reused
+  within a version, so please don't upload by hand from Xcode as well.
 - To build without merging anything: **Actions** tab, "iPhone app to TestFlight",
   **Run workflow**.
 - Cost: the repository is public, so GitHub's Mac build machines are free. (If it ever
   becomes private, each build would use about 150 to 250 of the plan's free Actions
   minutes, because Mac minutes count ten times.)
-- The version people see (1.0.3) is still set in Xcode: General, Version. Change it there
+- The version people see (1.0.4) is still set in Xcode: General, Version. Change it there
   and merge when you want a new version number.
 
 ## One-time setup (about 15 minutes)

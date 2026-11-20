@@ -45,17 +45,16 @@ platform :ios do
       bundle_identifier: APP_ID
     )
 
-    # Build numbers count up 1, 2, 3: one higher than the highest normal build number
-    # already in App Store Connect, across every version and including builds that are
-    # still processing. The few date-style numbers (like 2611202316) used on 20 Nov 2026
-    # are skipped, so counting carries on from the old hand-made builds.
+    # Build numbers count 1, 2, 3 within each version (1.0.4 build 1, 2, 3...). This looks
+    # at every build App Store Connect has for this version, including ones still
+    # processing, and goes one higher. A new version starts again at 1.
+    version = get_version_number(xcodeproj: PROJECT, target: "App")
     Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.from(hash: api_key)
     app = Spaceship::ConnectAPI::App.find(APP_ID)
-    numbers = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 200)
+    numbers = Spaceship::ConnectAPI::Build.all(app_id: app.id, version: version, sort: "-uploadedDate", limit: 200)
                 .map { |b| b.version.to_s.split(".").first.to_i }
-                .select { |n| n < 1_000_000 }
     next_number = (numbers.max || 0) + 1
-    UI.message("Highest build number so far: #{numbers.max.inspect}. This build: #{next_number}")
+    UI.message("Version #{version}: highest build so far #{numbers.max.inspect}, this build #{next_number}")
     increment_build_number(xcodeproj: PROJECT, build_number: next_number.to_s)
 
     build_app(
