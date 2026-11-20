@@ -45,13 +45,18 @@ platform :ios do
       bundle_identifier: APP_ID
     )
 
-    # The build number is the date and time in UTC (YYMMDDHHMM, e.g. 2611202305),
-    # so every build is higher than the last and higher than the old hand-made 1 to 99
-    # builds. Asking App Store Connect for the newest number misses builds that are
-    # still processing or belong to another version, and Apple then refuses the upload.
-    stamp = Time.now.utc.strftime("%y%m%d%H%M").to_i
-    latest = latest_testflight_build_number(api_key: api_key, app_identifier: APP_ID, initial_build_number: 0).to_i
-    increment_build_number(xcodeproj: PROJECT, build_number: [stamp, latest + 1].max.to_s)
+    # Build numbers count up 1, 2, 3: one higher than the highest normal build number
+    # already in App Store Connect, across every version and including builds that are
+    # still processing. The few date-style numbers (like 2611202316) used on 20 Nov 2026
+    # are skipped, so counting carries on from the old hand-made builds.
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.from(hash: api_key)
+    app = Spaceship::ConnectAPI::App.find(APP_ID)
+    numbers = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 200)
+                .map { |b| b.version.to_s.split(".").first.to_i }
+                .select { |n| n < 1_000_000 }
+    next_number = (numbers.max || 0) + 1
+    UI.message("Highest build number so far: #{numbers.max.inspect}. This build: #{next_number}")
+    increment_build_number(xcodeproj: PROJECT, build_number: next_number.to_s)
 
     build_app(
       project: PROJECT,
