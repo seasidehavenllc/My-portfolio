@@ -312,7 +312,7 @@ form.f label.check input{width:20px;height:20px;min-height:0;margin:0;accent-col
 .ax-url{display:flex;align-items:center;gap:6px;margin:4px 0 0;font-size:.86rem;color:var(--muted);min-width:0}
 .ax-url .xi{width:14px;height:14px}
 .ax-url a,.ax-url span{color:inherit;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ax-acts{display:grid;grid-template-columns:1.4fr 1fr 46px;gap:8px;margin-top:16px}
+.ax-acts{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 46px;gap:8px;margin-top:16px}
 .ax-pill{display:inline-flex;align-items:center;gap:6px;flex:none;font-size:.74rem;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--s3);color:var(--muted);white-space:nowrap}
 .ax-pill.live{color:var(--green);background:rgba(74,222,155,.12)}
 .ax-pill.live i{width:6px;height:6px;border-radius:50%;background:var(--green);animation:axPulse 1.8s ease-out infinite}
@@ -415,6 +415,7 @@ form.f label.check input{width:20px;height:20px;min-height:0;margin:0;accent-col
 .ax-sub>div{overflow:hidden}
 .ax-sub a,.ax-sub button{display:flex;justify-content:space-between;gap:12px;width:100%;padding:11px 16px 11px 65px;border:0;background:transparent;color:var(--text);font:inherit;font-size:.92rem;text-align:left;text-decoration:none;cursor:pointer}
 .ax-sub a:hover,.ax-sub button:hover{color:var(--ink)}
+.ax-sub a,.ax-sub button{align-items:center;white-space:nowrap}
 .ax-sub span{color:var(--mu2);font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%}
 .ax-acc.open .ax-sub>div{padding-bottom:6px}
 
@@ -444,7 +445,7 @@ form.f label.check input{width:20px;height:20px;min-height:0;margin:0;accent-col
   .ax-main{padding-top:28px}
 }
 @media(max-width:759px){.ax-new{display:none}}
-@media(max-width:380px){.ax-qa{gap:6px}.ax-qa a,.ax-qa button{font-size:.72rem}.ax-acts{grid-template-columns:1fr 1fr 46px}}
+@media(max-width:380px){.ax-qa{gap:6px}.ax-qa a,.ax-qa button{font-size:.72rem}.ax-acts{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 46px}.ax-acts .ax-btn:not(.sq){padding:0 10px}}
 
 /* sheets: glass, a grab handle, a springy slide up */
 .app2 .dlg{background:rgba(13,20,27,.9);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);color:var(--ink)}
@@ -473,7 +474,7 @@ form.f label.check input{width:20px;height:20px;min-height:0;margin:0;accent-col
 /* account page */
 .app2 .ax-full{width:min(520px,100%);padding-top:14px}
 @media(max-width:700px){
-  .app2 .ax-full{margin:0;width:100%;max-width:100%;height:100dvh;max-height:100dvh;border-radius:0;border:0;padding:calc(10px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));background:rgba(5,8,12,.96)}
+  .app2 .ax-full{position:fixed;inset:0;margin:0;width:100%;max-width:100%;height:100dvh;max-height:100dvh;border-radius:0;border:0;padding:calc(10px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:rgba(5,8,12,.96);overflow-x:hidden;overscroll-behavior:contain}
   .app2 .ax-full::before{display:none}
   .app2 .ax-full[open]{animation:axSlide .45s var(--out)}
 }
@@ -483,7 +484,7 @@ form.f label.check input{width:20px;height:20px;min-height:0;margin:0;accent-col
 .ax-ib{width:40px;height:40px;border:0;border-radius:50%;display:grid;place-items:center;background:var(--s2);color:var(--ink);cursor:pointer}
 .app2 .me-head{flex-direction:column;text-align:center;gap:4px;padding:10px 0 22px;border:0}
 .app2 .me-head .avatar.lg{width:84px;height:84px;font-size:1.8rem;margin-bottom:8px;box-shadow:0 0 0 6px rgba(46,197,224,.12),0 16px 40px -8px rgba(46,197,224,.45)}
-.app2 .me-head b{color:var(--ink);font-size:1.05rem}
+.app2 .me-head b{color:var(--ink);font-size:1.05rem;max-width:100%;overflow-wrap:anywhere}
 .ax-full .ax-lbl{margin:0 4px 8px}
 .app2 .me-list.ax-grp{padding:0;margin-bottom:22px;border-radius:18px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--l1)}
 .app2 .me-list.ax-grp>a,.app2 .me-list.ax-grp>button{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:0;font-weight:500;color:var(--ink)}
@@ -515,5 +516,7 @@ body:not(.app2)::before{z-index:0}
 body:not(.app2)>header,body:not(.app2)>main{position:relative;z-index:1}
 body:not(.app2) .app-top{position:sticky;z-index:40}
 .app-top .brand-name{white-space:nowrap}
+/* small phones: the header's name and button share one line without running off the screen */
+@media(max-width:380px){.app-top .wrap{padding:0 16px;gap:8px}.app-top .brand-name>span{display:none}.app-top .btn-sm{padding:0 14px}}
 :where(.ax-view) section{padding:0}
 .app2 .to-top{display:none}
