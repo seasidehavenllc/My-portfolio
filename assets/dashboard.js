@@ -131,10 +131,11 @@
     return [
       { t: "Pick a design", done: true },
       { t: "Publish your site", done: !!s.published_at, act: "publish" },
-      { t: free ? "Put it online" : "Choose a plan", done: isLive(s) || s.plan === "owned", act: "plans" },
+      /* a free site is online as soon as it's published, so it only gets the publish step */
+      free ? null : { t: "Choose a plan", done: isLive(s) || s.plan === "owned", act: "plans" },
       { t: "Turn on your contact form", done: s.form === "true", act: "integrations" },
       { t: "Connect your own domain", done: !!s.custom_domain, act: free ? "plans" : "settings" }
-    ];
+    ].filter(Boolean);
   }
 
   function renderHome() {
@@ -358,7 +359,7 @@
   const pay = Pay.on;
   function openPlans(s, focus) {
     $("#dMoPrice").textContent = "$" + monthly; $("#dProPrice").textContent = "$" + pro; $("#dBuyPrice").textContent = "$" + buy;
-    $("#dPayMo").href = `contact.html?design=1&plan=Hosted`; $("#dPayPro").href = `contact.html?design=1&plan=Pro`; $("#dPayBuy").href = `contact.html?design=1&plan=Download`;
+    $("#dPayMo").href = `contact.html?design=1&plan=Website%20plan`; $("#dPayPro").href = `contact.html?design=1&plan=Pro%20plan`; $("#dPayBuy").href = `contact.html?design=1&plan=Own%20it`;
     $("#dPayBuy").textContent = `Buy for $${buy}`;
     /* on a monthly plan already: switch between Website and Pro (the old plan is cancelled and the unused days credited) */
     const mo = s.plan === "monthly", tierNow = mo ? (isPro(s) ? "pro" : "website") : "", proFirst = focus === "pro" || tierNow === "website";
@@ -463,7 +464,7 @@
     try {
       await Cloud.saveSite(cur.id, { custom_domain: d });
       cur.custom_domain = d; e.target.domain.value = d; $("#dDomOff").hidden = false; $("#dDns").hidden = false;
-      say($("#dDomMsg"), cur.plan === "monthly" ? "Domain saved. Add the records below, and your site will show at " + d + " once they're live." : "Domain saved. It goes live once you're on the monthly plan and the records below are added.", "ok"); refresh();
+      say($("#dDomMsg"), cur.plan === "monthly" ? "Domain saved. Add the records below, and your site will show at " + d + " once they're live." : "Domain saved. It goes live once you're on the Website or Pro plan and the records below are added.", "ok"); refresh();
     } catch (err) { say($("#dDomMsg"), err.message); }
   });
   $("#dDomOff").addEventListener("click", async () => {
