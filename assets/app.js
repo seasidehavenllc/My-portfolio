@@ -139,7 +139,21 @@ $$(".dd").forEach(dd => {
   b.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
   b.addEventListener("click", () => scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }));
   document.body.appendChild(b);
-  const show = () => b.classList.toggle("on", scrollY > 600);
+  /* On phones and tablets the button sits over the text, so it only appears while you scroll back up
+     (the moment you'd want it) and tucks away again when you scroll down or stop for a few seconds.
+     On wide screens it sits in the empty margin beside the page, so it just stays put. */
+  const wide = matchMedia("(min-width: 1100px)");
+  let lastY = scrollY, idle = 0;
+  const hide = () => { if (!b.matches(":hover,:focus-visible")) b.classList.remove("on"); };
+  const show = () => {
+    const y = scrollY, up = y < lastY - 2, down = y > lastY + 2;
+    if (y < 600) b.classList.remove("on");
+    else if (wide.matches || up) b.classList.add("on");
+    else if (down) b.classList.remove("on");
+    if (y !== lastY) lastY = y;
+    clearTimeout(idle);
+    if (!wide.matches && b.classList.contains("on")) idle = setTimeout(hide, 2500);
+  };
   addEventListener("scroll", show, { passive: true }); show();
 })();
 

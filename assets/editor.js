@@ -519,12 +519,12 @@
   const stripeRef = () => "editor-" + S.src.replace(/[^A-Za-z0-9_-]/g, "_");
   const checkout = (link, plan) => {
     save();
-    location.href = link ? link + (link.includes("?") ? "&" : "?") + "client_reference_id=" + stripeRef() : `contact.html?template=${encodeURIComponent(S.src)}&design=1&plan=${plan}`;
+    location.href = link ? link + (link.includes("?") ? "&" : "?") + "client_reference_id=" + stripeRef() : `contact.html?template=${encodeURIComponent(S.src)}&design=1&plan=${encodeURIComponent(plan)}`;
   };
   $("#edPayX").addEventListener("click", () => payDlg.close());
   payDlg.addEventListener("click", e => { if (e.target === payDlg) payDlg.close(); });
-  $("#edPayGo").addEventListener("click", () => checkout((CONFIG.pay || {}).editorBuy, "Download"));
-  $("#edPayMo").addEventListener("click", () => checkout((CONFIG.pay || {}).editorMonthly, "Hosted"));
+  $("#edPayGo").addEventListener("click", () => checkout((CONFIG.pay || {}).editorBuy, "Own it"));
+  $("#edPayMo").addEventListener("click", () => checkout((CONFIG.pay || {}).editorMonthly, "Website plan"));
   $("#edExport").addEventListener("click", async () => {
     if (CLOUD) {
       /* accounts are on: the dashboard handles plans, publishing and downloads */

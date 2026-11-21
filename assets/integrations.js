@@ -95,7 +95,7 @@ const IntegrationsUI = (() => {
     $("#dIntPlan").className = "chip " + (t === "pro" ? "sea" : t ? "green" : "");
     const note = $("#dIntNote");
     note.innerHTML = !t ? (site.plan === "owned"
-        ? "Integrations run on sites we host. Your site is downloaded, so switch to a monthly plan to use them."
+        ? "Integrations run on sites we host. Your site is downloaded, so switch to the Website or Pro plan to use them."
         : "Integrations come with the Website and Pro plans. Pick a plan to switch them on.") + ` <button class="linkish" type="button" data-plans>See plans</button>`
       : t === "website" ? `Your plan includes the first three. Go Pro for $${opts.pro || 15} a month to unlock all of them. <button class="linkish" type="button" data-plans="pro">See Pro</button>`
       : live ? "Every integration is included. Changes show on your live site within a minute, no need to publish again." : "Every integration is included. They show on your site once you publish it.";

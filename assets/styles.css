@@ -210,7 +210,7 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .cell.w3{grid-column:span 3}.cell.w4{grid-column:span 4}
 .cell h3{font-size:1.25rem}
 .cell .vis{margin-top:auto}
-@media(max-width:940px){.cell,.cell.w3,.cell.w4{grid-column:span 6}}
+@media(max-width:940px){.cell,.cell.w3,.cell.w4{grid-column:span 6;min-height:0}.cell .vis{margin-top:6px}}
 .pills{display:flex;flex-wrap:wrap;gap:8px}
 .pills span{font-size:.82rem;padding:6px 12px;border-radius:999px;background:var(--panel-2);color:var(--white)}
 
@@ -226,19 +226,24 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .plan .pop{position:absolute;top:24px;right:22px;font-size:.74rem;font-weight:700;padding:5px 12px;border-radius:999px;background:var(--grad);color:#03141A;letter-spacing:.02em}
 .plan.warm .pop{background:var(--warm);color:#2A0F05}
 .plan h3{font-size:1.35rem}
+/* narrow plan cards (four across on laptops, small phones): the badge sits above the title instead of on top of it */
+.plan{container-type:inline-size}
+@container (max-width:340px){.plan .pop{position:static;align-self:flex-start;margin:-6px 0 -4px}}
 .plan > p{font-size:.95rem;min-height:3em}
 .price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .price b{font-size:2.8rem;color:var(--white);letter-spacing:-.05em;line-height:1}
 .price span{color:var(--muted);font-size:.9rem}
 .price s{color:var(--muted);font-size:1.05rem}
 .feat{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:.94rem;margin:6px 0 10px}
-.feat li{display:flex;gap:10px;align-items:flex-start}
-.feat li::before{content:"";flex:none;width:18px;height:18px;margin-top:3px;border-radius:50%;background:rgba(74,222,155,.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234ADE9B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/11px no-repeat}
+.feat li{position:relative;padding-left:28px;overflow-wrap:anywhere}
+.feat li::before{content:"";position:absolute;left:0;top:3px;width:18px;height:18px;border-radius:50%;background:rgba(74,222,155,.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234ADE9B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/11px no-repeat}
 .plan .btn{margin-top:auto}
 .meta-line{font-size:.85rem;color:var(--muted)}
 .ptabs{display:inline-flex;gap:4px;padding:5px;border-radius:999px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--line);margin-bottom:34px;max-width:100%;overflow-x:auto}
 .ptabs button{flex:none;min-height:42px;padding:0 18px;border-radius:999px;border:0;background:transparent;color:var(--text);font-weight:600;cursor:pointer}
 .ptabs button[aria-selected="true"]{background:var(--white);color:#05080C}
+/* phones: all four pricing tabs visible at once (two rows) instead of two hidden off the edge */
+@media(max-width:620px){.ptabs{display:grid;grid-template-columns:1fr 1fr;width:100%;border-radius:22px;overflow:visible}.ptabs button{border-radius:17px;padding:0 10px;font-size:.88rem}}
 .ppanel[hidden]{display:none}
 .compare{width:100%;border-collapse:collapse;font-size:.95rem}
 .compare-wrap{overflow-x:auto;border-radius:var(--r-lg);box-shadow:inset 0 0 0 1px var(--line);background:var(--panel)}
@@ -332,7 +337,7 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .cart-n.bump{transform:scale(1.4)}
 @media(max-width:520px){.shop{grid-template-columns:1fr 1fr}.shop .prod:nth-child(3){display:none}}
 .fx{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media(max-width:700px){.fx{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.fx{grid-template-columns:1fr 1fr}.fx > div:last-child:nth-child(odd){grid-column:span 2}.fx .btn{padding-left:16px;padding-right:16px;max-width:100%;white-space:normal}}
 .fx > div{min-height:150px;border-radius:16px;background:rgba(0,0,0,.3);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px;text-align:center;font-size:.8rem;color:var(--muted);position:relative;overflow:hidden}
 .magnet{transition:transform .2s}
 .tilt{width:110px;height:72px;border-radius:12px;background:var(--grad);transform-style:preserve-3d;transition:transform .15s;box-shadow:0 14px 30px -10px rgba(46,197,224,.6);display:grid;place-items:center;color:#03141A;font-weight:700}
@@ -346,7 +351,10 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .scramble{font-family:ui-monospace,monospace;font-size:1rem;color:var(--white);font-weight:600}
 .count{font-size:2rem;color:var(--white);font-weight:700;letter-spacing:-.04em}
 .reveal-img{width:100%;height:80px;border-radius:12px;background:linear-gradient(135deg,#FF7A59,#FFC56E);clip-path:circle(12% at 50% 50%);transition:clip-path .6s var(--ease);display:grid;place-items:center;color:#2A0F05;font-weight:700}
-.fx > div:hover .reveal-img{clip-path:circle(75% at 50% 50%)}
+.reveal-img{font-size:0;transition:clip-path .6s var(--ease),font-size 0s .3s}
+.fx > div:hover .reveal-img{clip-path:circle(75% at 50% 50%);font-size:.85rem;transition-delay:0s}
+/* phones have no hover: reveal it once the tile scrolls into view */
+@media(hover:none){.fx > div.in .reveal-img{clip-path:circle(75% at 50% 50%);font-size:.85rem;transition-delay:.4s}}
 .ld{display:flex;gap:6px}.ld i{width:10px;height:10px;border-radius:50%;background:var(--sea);animation:ld 1s ease-in-out infinite}.ld i:nth-child(2){animation-delay:.15s}.ld i:nth-child(3){animation-delay:.3s}
 @keyframes ld{50%{transform:translateY(-10px);opacity:.5}}
 
@@ -466,6 +474,9 @@ main{animation:pagein .5s var(--ease)}
 .design-note b{color:var(--white)}
 .design-note a{color:var(--aqua)}
 .design-note .btn{margin-top:10px;display:flex}
+
+/* anything marked hidden stays hidden, even when a class gives it display:flex or grid */
+[hidden]{display:none !important}
 
 /* ---------- phones and the iPhone app ---------- */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
