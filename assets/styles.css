@@ -15,7 +15,9 @@
   --ease:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;background:var(--bg)}
+html{scroll-behavior:smooth;background:var(--bg);overflow-x:hidden;overflow-x:clip}
+/* a sheet or menu takes focus itself when it opens (assets/clean.js), so no ring and no jump */
+dialog:focus{outline:none}
 body{font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.6;font-size:16.5px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit}
 img,svg{display:block}
@@ -61,6 +63,9 @@ header.scrolled{background:rgba(5,8,12,.78);backdrop-filter:saturate(1.5) blur(1
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--white);font-weight:700;letter-spacing:-.02em}
 .brand-logo{width:30px;height:32px}
 .brand-name span{color:var(--muted);font-weight:500}
+/* the name stays on one line; the smallest phones show "Seaside Haven" in the top bar */
+header .brand-name{white-space:nowrap}
+@media(max-width:360px){header .brand-name>span{display:none}}
 .links{display:flex;gap:4px}
 .links a{text-decoration:none;font-size:.93rem;font-weight:500;color:var(--text);padding:8px 14px;border-radius:999px;transition:color .2s,background .2s}
 .links a:hover{color:var(--white);background:var(--panel-2)}
@@ -302,6 +307,8 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 @media(max-width:900px){.demo-grid{grid-template-columns:1fr}}
 .demo{background:var(--panel);border-radius:var(--r-lg);box-shadow:inset 0 0 0 1px var(--line);padding:28px;display:flex;flex-direction:column;gap:14px;min-width:0}
 .demo h3{font-size:1.3rem}
+/* the chat demo's field shrinks so Send always fits beside it on small phones */
+#chatForm input{min-width:0}#chatForm .btn{flex:none}
 .demo .what{font-size:.85rem;color:var(--muted)}
 .chat{display:flex;flex-direction:column;gap:10px;height:300px;overflow-y:auto;padding:16px;border-radius:var(--r-md);background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px var(--line);scroll-behavior:smooth}
 .msg{max-width:82%;padding:10px 14px;border-radius:16px;font-size:.92rem;line-height:1.45;animation:pop .3s var(--ease)}
@@ -315,7 +322,8 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .quick button:hover{background:rgba(46,197,224,.2)}
 .days,.slots{display:grid;gap:8px}
 .days{grid-template-columns:repeat(5,1fr)}
-.slots{grid-template-columns:repeat(3,1fr)}
+.slots{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:360px){.days,.slots{gap:6px}.days button,.slots button{font-size:.78rem;padding:0 2px}}
 .days button,.slots button{min-height:48px;border-radius:12px;border:0;background:var(--panel-2);color:var(--text);cursor:pointer;font-size:.85rem;transition:all .2s}
 .days button b{display:block;color:var(--white);font-size:1.1rem}
 .days button[aria-pressed="true"],.slots button[aria-pressed="true"]{background:var(--sea);color:#03141A}
@@ -516,8 +524,8 @@ html.mm-on .to-top{opacity:0;visibility:hidden}
 .mm-main:active{background:#DCE3E6}
 .mm-alt{display:block;text-align:center;padding:10px 0 2px;font-size:.88rem;color:var(--aqua);text-decoration:none;font-weight:500}
 .mm-h{margin:22px 6px 10px;font-size:.72rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-.mm-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.mm-tile{display:flex;flex-direction:column;gap:2px;padding:14px;border-radius:16px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--line);text-decoration:none;transition:background .2s}
+.mm-tiles{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.mm-tile{display:flex;flex-direction:column;gap:2px;min-width:0;padding:14px;border-radius:16px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--line);text-decoration:none;transition:background .2s}
 .mm-tile .mm-i{margin-bottom:10px}
 .mm-tile b{color:var(--white);font-weight:600;font-size:.95rem}
 .mm-tile small{color:var(--muted);font-size:.8rem}
@@ -543,6 +551,8 @@ html.mm-on .to-top{opacity:0;visibility:hidden}
 .mm-tile .mm-i{grid-row:1/3;margin:0;width:36px;height:36px}
 .mm-tile b{font-size:.9rem;line-height:1.2}
 .mm-tile small{font-size:.76rem;line-height:1.2}
+/* the smallest phones: icon above the words, so names like "Templates" never break */
+@media(max-width:360px){.mm-sheet{width:94vw}.mm-body{padding-left:12px;padding-right:12px}.mm-tiles{gap:8px}.mm-tile{grid-template-columns:1fr;row-gap:2px}.mm-tile .mm-i{grid-row:auto;margin-bottom:8px}}
 .mm-h{margin:18px 6px 8px}
 .mm-row{padding:6px 10px}
 .mm-row .mm-i{width:34px;height:34px}

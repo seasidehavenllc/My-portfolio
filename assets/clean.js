@@ -25,3 +25,23 @@
 
 /* the page's file name, with or without a clean address: "app.html", "index.html" */
 function pageName() { return (location.pathname.split("/").pop() || "index").replace(/\.html$/, "") + ".html"; }
+
+/* Sheets and menus: when one opens, the browser focuses the first button or field inside it.
+   On iPhone that draws a focus ring around the close button, pops the keyboard for forms and
+   scrolls the screen to "reveal" that button, which pushed the account menu up under the clock
+   and off the side of the screen. The sheet takes focus itself instead, and nothing moves. */
+(() => {
+  const D = window.HTMLDialogElement && HTMLDialogElement.prototype;
+  if (!D || !D.showModal || D.showModal.__calm) return;
+  const show = D.showModal;
+  D.showModal = function () {
+    const x = scrollX, y = scrollY;
+    if (!this.hasAttribute("tabindex")) this.tabIndex = -1;
+    this.setAttribute("autofocus", "");
+    show.call(this);
+    try { this.focus({ preventScroll: true }); } catch (e) { this.focus(); }
+    this.scrollTop = 0;
+    if (scrollX !== x || scrollY !== y) scrollTo(x, y);
+  };
+  D.showModal.__calm = true;
+})();
