@@ -555,6 +555,7 @@ function openPreview(id) {
   }));
   $$(".scramble").forEach(el => {
     const final = el.textContent, chars = "!<>-_\\/[]{}=+*^?#", go = () => {
+      if (reduce) return;
       let f = 0; clearInterval(el._i);
       el._i = setInterval(() => { el.textContent = final.split("").map((c, i) => i < f / 2 ? c : c === " " ? " " : chars[Math.random() * chars.length | 0]).join(""); if (++f > final.length * 2) { clearInterval(el._i); el.textContent = final; } }, 35);
     };

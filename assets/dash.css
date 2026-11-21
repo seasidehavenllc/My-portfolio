@@ -304,7 +304,8 @@ form.f label.check input{width:20px;height:20px;min-height:0;margin:0;accent-col
 .ax-pg .scale{transform-origin:0 0;pointer-events:none}
 @keyframes axPan{to{transform:translateY(-200px)}}
 /* the preview fades out completely before the site name, so its headline never runs into the name */
-.ax-prev::after{content:"";position:absolute;inset:auto 0 0;height:110px;background:linear-gradient(transparent,var(--s1) 72%)}
+.ax-prev{-webkit-mask-image:linear-gradient(#000 30%,rgba(0,0,0,.8) 45%,rgba(0,0,0,.45) 58%,rgba(0,0,0,.18) 69%,rgba(0,0,0,.05) 76%,transparent 82%);mask-image:linear-gradient(#000 30%,rgba(0,0,0,.8) 45%,rgba(0,0,0,.45) 58%,rgba(0,0,0,.18) 69%,rgba(0,0,0,.05) 76%,transparent 82%)}
+.ax-prev::after{display:none}
 .ax-hmeta{position:relative;z-index:1;padding:2px 18px 18px}
 .ax-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .ax-row h1{margin:0;font-size:1.45rem;font-weight:700;letter-spacing:-.01em;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
