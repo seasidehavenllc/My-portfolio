@@ -41,7 +41,7 @@
   /* ---------- app shell: one site at a time, tabs for Home, Inbox, Design and Manage ---------- */
   const when = d => d ? new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
   const ago = d => { const m = Math.round((Date.now() - new Date(d)) / 60000); return m < 1 ? "now" : m < 60 ? m + " min" : m < 1440 ? Math.round(m / 60) + " hr" : m < 10080 ? new Date(d).toLocaleDateString(undefined, { weekday: "short" }) : new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
-  const ic = (id, cls = "") => `<svg class="xi ${cls}" aria-hidden="true"><use href="#x-${id}"/></svg>`;
+  const ic = (id, cls = "") => `<svg class="xi ${cls}" viewBox="0 0 24 24" aria-hidden="true"><use href="#x-${id}"/></svg>`;
   const isLive = s => (s.plan === "monthly" && !!s.published_at) || freeLive(s);
   const addrOf = s => s.plan === "free" ? s.slug + "." + base : Cloud.address(s);
   const swatch = s => { const t = typeof tplGet === "function" && tplGet(s.tpl); const p = t && t.pal && t.pal[t.p0 || 0]; return p ? `linear-gradient(160deg,${p.bg} 52%,${p.ac} 52%)` : "var(--grad)"; };
