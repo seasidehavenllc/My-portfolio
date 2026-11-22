@@ -31,6 +31,8 @@ h1,h2,h3,h4{color:var(--white);letter-spacing:-.03em;line-height:1.05;font-weigh
 h1 .s,h2 .s{font-family:var(--serif);font-weight:400;font-style:italic;letter-spacing:-.01em}
 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .w{background:var(--warm);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* gradient words: the gradient only paints inside the word's box, so italic tails (the g in great, y, f, j) and slanted edges were cut off. Extra padding widens the painted area; the matching negative margin keeps the spacing the same. */
+.g,.w{padding:.06em .16em .24em .12em;margin:0 -.16em 0 -.12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .skip{position:absolute;left:-999px;top:8px;z-index:100;background:#fff;color:#000;padding:8px 14px;border-radius:8px}
 .skip:focus{left:8px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
