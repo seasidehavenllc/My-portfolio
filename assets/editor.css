@@ -122,7 +122,7 @@ input[type=range]{width:100%;accent-color:var(--sea)}
 
 /* paid download dialog */
 .ed-pay{border:0;border-radius:22px;background:#0A1016;color:var(--text);padding:28px;width:min(680px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 30px 90px rgba(0,0,0,.7),0 0 0 1px var(--line-2)}
-.ed-pay::backdrop{background:rgba(3,6,10,.72);backdrop-filter:blur(4px)}
+.ed-pay::backdrop{background:rgba(3,6,10,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .ed-pay h2{margin:0;color:var(--white);font-size:1.5rem}
 .ed-payp{margin:6px 0 14px}
 .ed-plans{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px}
@@ -242,3 +242,10 @@ body.ed-cropmode .ed-fab,body.ed-cropmode .ed-secbar{display:none}
 
 /* anything marked hidden stays hidden */
 [hidden]{display:none !important}
+
+/* iPhone home bar: the Tools button, the photo crop bar and messages sit above it, not under it */
+.ed-fab{bottom:calc(14px + env(safe-area-inset-bottom))}
+.ed-cropbar{bottom:calc(16px + env(safe-area-inset-bottom))}
+.ed-toast{bottom:calc(24px + env(safe-area-inset-bottom))}
+/* phones: the floating Close tools button no longer covers the last options in the tools sheet */
+@media(max-width:900px){.ed-panel{padding-bottom:calc(84px + env(safe-area-inset-bottom))}}

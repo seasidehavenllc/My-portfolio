@@ -12,7 +12,7 @@
 .ba > .after{clip-path:inset(0 0 0 var(--pos))}
 .ba .handle{position:absolute;top:0;bottom:0;left:var(--pos);width:2px;background:#fff;transform:translateX(-1px);z-index:3;pointer-events:none}
 .ba .handle::after{content:"";position:absolute;top:50%;left:50%;width:44px;height:44px;border-radius:50%;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2305070D' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l-6 6 6 6M15 6l6 6-6 6'/%3E%3C/svg%3E") center/20px no-repeat;transform:translate(-50%,-50%);box-shadow:0 6px 24px rgba(0,0,0,.45)}
-.ba .lab{position:absolute;bottom:14px;z-index:2;font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.75);color:#fff;backdrop-filter:blur(6px)}
+.ba .lab{position:absolute;bottom:14px;z-index:2;font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.75);color:#fff;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .ba .lab.l{left:14px}.ba .lab.r{right:14px}
 .ba-range{width:100%;margin-top:18px;accent-color:var(--white)}
 .ba-set{display:none}.ba-set.on{display:block}
@@ -88,7 +88,7 @@
   radial-gradient(ellipse 80% 40% at 50% 100%,rgba(140,60,25,.7),transparent 70%),
   linear-gradient(170deg,#3A2418,#140D09);position:relative;max-height:330px;justify-self:end;width:100%}
 .new-rest .n-img::before{content:"Chef's tasting menu";position:absolute;left:14px;right:14px;top:14px;font:500 1.15rem 'Playfair Display',serif;font-style:italic;color:#F2E8DC}
-.new-rest .n-img::after{content:"Seven courses · Thursdays";position:absolute;left:14px;bottom:14px;font-size:.72rem;padding:6px 12px;border-radius:999px;background:rgba(15,11,9,.7);backdrop-filter:blur(6px)}
+.new-rest .n-img::after{content:"Seven courses · Thursdays";position:absolute;left:14px;bottom:14px;font-size:.72rem;padding:6px 12px;border-radius:999px;background:rgba(15,11,9,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .new-rest .n-row{display:flex;gap:18px;margin-top:22px;font-size:.75rem;color:#B7A894}
 .new-rest .n-row b{display:block;color:#F2E8DC;font-size:1.05rem;font-family:"Playfair Display",serif}
 
