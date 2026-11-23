@@ -1,7 +1,7 @@
 /* Service worker for the installable app.
    Pages and files from this site: network first, falling back to the last copy when offline.
    Account data (Supabase) and other sites are never cached here. */
-const CACHE = "shs-app-v8";
+const CACHE = "shs-app-v9";
 const SHELL = ["dashboard.html", "account.html", "editor.html", "assets/styles.css", "assets/dash.css", "assets/editor.css", "assets/templates.css",
   "assets/clean.js", "assets/config.js", "assets/cloud.js", "assets/pay.js", "assets/dashboard.js", "assets/editor.js", "assets/templates.js", "assets/logo.svg", "assets/favicon.svg", "assets/icon-192.png"];
 
