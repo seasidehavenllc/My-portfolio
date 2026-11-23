@@ -18,8 +18,8 @@
     /* the free starter designs come first; the rest carry a "Paid" tag (free to try, paid to publish) */
     const found = TEMPLATES.filter(t => cat === "All" || (cat === "Free" ? Free.ok(t.id) : t.cat === cat)).sort((a, b) => Free.ok(b.id) - Free.ok(a.id));
     list.innerHTML = found.map(t => `<button class="nw-card" type="button" data-id="${t.id}" aria-pressed="${picked === t.id}">
-      <div class="nw-shotw"><div class="nw-shot" data-tid="${t.id}"></div>${Free.ok(t.id) ? `<span class="nw-tag free">Free</span>` : `<span class="nw-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Paid</span>`}</div>
-      <div class="nw-meta"><b>${t.name}</b><span>${t.industry}</span></div></button>`).join("");
+      <div class="nw-shotw"><div class="nw-shot" data-tid="${t.id}"></div></div>
+      <div class="nw-meta"><div class="nw-name"><b>${t.name}</b>${Free.ok(t.id) ? `<span class="nw-tag free">Free</span>` : `<span class="nw-tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Paid</span>`}</div><span>${t.industry}</span></div></button>`).join("");
     list.querySelectorAll(".nw-shot").forEach(el => io ? io.observe(el) : draw(el));
     list.scrollTop = 0;
   }

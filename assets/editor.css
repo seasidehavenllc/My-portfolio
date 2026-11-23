@@ -63,7 +63,10 @@ select option{color:#000}
 .ed-tcard div.meta{display:flex;justify-content:space-between;gap:8px;padding:9px 12px;font-size:.86rem}
 .ed-tcard b{color:var(--white)}
 .ed-tcard div.meta{align-items:center}
-.ed-tcard div.meta span{flex:1;text-align:right}
+/* name and Free/Paid tag on one line, the kind of business underneath, so nothing gets cut off on narrow cards */
+.ed-tcard div.meta{flex-wrap:wrap;row-gap:2px}
+.ed-tcard div.meta b{flex:1;min-width:0}
+.ed-tcard div.meta span{order:3;flex-basis:100%;min-width:0;font-size:.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ed-ttag{flex:none;font-style:normal;font-size:.68rem;font-weight:700;line-height:1;padding:3px 7px;border-radius:999px;background:var(--panel-2);color:var(--muted)}
 .ed-ttag.free{background:rgba(74,222,155,.14);color:var(--green)}
 .ed-pals{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
@@ -119,7 +122,7 @@ input[type=range]{width:100%;accent-color:var(--sea)}
 
 /* paid download dialog */
 .ed-pay{border:0;border-radius:22px;background:#0A1016;color:var(--text);padding:28px;width:min(680px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 30px 90px rgba(0,0,0,.7),0 0 0 1px var(--line-2)}
-.ed-pay::backdrop{background:rgba(3,6,10,.72);backdrop-filter:blur(4px)}
+.ed-pay::backdrop{background:rgba(3,6,10,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .ed-pay h2{margin:0;color:var(--white);font-size:1.5rem}
 .ed-payp{margin:6px 0 14px}
 .ed-plans{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px}
@@ -184,6 +187,16 @@ html,body,*{touch-action:manipulation}
   #edExport{flex:none!important;min-height:36px;padding:0 14px!important;background:var(--grad);color:#03141A;box-shadow:none;font-size:.84rem!important}
 }
 
+/* the smallest phones (iPhone SE, Display Zoom): tighter buttons so the page menu keeps its name */
+@media(max-width:360px){
+  .ed-top{gap:4px;padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
+  .ed-tools,.ed-actions{gap:4px}
+  .ed-brand img{width:24px;height:24px}
+  .ed-ic,.ed-prev{width:32px!important;height:32px;min-height:32px!important}
+  .ed-page select{padding:0 6px}
+  #edExport{padding:0 10px!important;font-size:.78rem!important}
+}
+
 /* ===================================================================
    App feel: matches the dashboard (glass bars, pill tabs, spring
    sheet, press feedback). Keep in step with "App shell" in dash.css.
@@ -213,3 +226,26 @@ html,body,*{touch-action:manipulation}
 .ed-check input[type="checkbox"]::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);transition:transform .35s var(--spring)}
 .ed-check input[type="checkbox"]:checked{background:linear-gradient(120deg,#1494B8,#2EC5E0)}
 .ed-check input[type="checkbox"]:checked::after{transform:translateX(16px)}
+
+/* ---------- moving and zooming a photo ---------- */
+.ed-canvas.editing .ed-cropping[data-img],.ed-canvas.editing .ed-cropping[data-img]:hover{outline:3px solid #2EC5E0;outline-offset:3px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.ed-canvas.editing .ed-cropping[data-img]:active{cursor:grabbing}
+.ed-cropping [data-e]{pointer-events:none}
+.ed-cropbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;align-items:center;gap:8px;width:min(460px,calc(100vw - 32px));background:#0A1016;border-radius:18px;padding:10px 12px;box-shadow:0 16px 44px rgba(0,0,0,.6),0 0 0 1px var(--line-2)}
+.ed-crophint{font-size:.8rem;color:var(--muted);text-align:center}
+.ed-croprow{display:flex;align-items:center;gap:6px;width:100%}
+.ed-croprow input{flex:1;min-width:0;accent-color:var(--sea)}
+.ed-croprow button{border:0;background:rgba(255,255,255,.07);color:var(--white);border-radius:10px;min-height:40px;min-width:40px;padding:0 12px;cursor:pointer;font-weight:600;font-size:.9rem;flex:none}
+.ed-croprow button[data-z]{padding:0;font-size:1.2rem}
+.ed-croprow button.go{background:var(--grad);color:#03141A}
+body.ed-cropmode .ed-fab,body.ed-cropmode .ed-secbar{display:none}
+
+/* anything marked hidden stays hidden */
+[hidden]{display:none !important}
+
+/* iPhone home bar: the Tools button, the photo crop bar and messages sit above it, not under it */
+.ed-fab{bottom:calc(14px + env(safe-area-inset-bottom))}
+.ed-cropbar{bottom:calc(16px + env(safe-area-inset-bottom))}
+.ed-toast{bottom:calc(24px + env(safe-area-inset-bottom))}
+/* phones: the floating Close tools button no longer covers the last options in the tools sheet */
+@media(max-width:900px){.ed-panel{padding-bottom:calc(84px + env(safe-area-inset-bottom))}}

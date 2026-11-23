@@ -118,6 +118,7 @@
     const pad = innerWidth <= 900 ? 24 : 48, avail = Math.max(240, stage.clientWidth - pad);
     const w = dev === "desktop" ? Math.max(DEV.desktop, Math.min(avail, 1480)) : DEV[dev];
     const cw = Math.min(avail, dev === "tablet" ? 720 : dev === "phone" ? 390 : w), s = cw / w;
+    if (crop) stopCrop();
     canvas.className = "ed-canvas " + dev + (preview ? "" : " editing");
     canvas.style.width = cw + "px";
     canvas.innerHTML = `<div class="scale" style="width:${w}px;transform:scale(${s})">${tpRender(S.t, S.P, pg)}</div>`;
@@ -303,7 +304,7 @@
     const has = S.t.imgs && S.t.imgs[key];
     const upload = () => { hidePop(); file._key = key; file.value = ""; file.click(); };
     if (!has) return upload();
-    showPop(x, y + 12, [["Change photo", upload], ["Remove photo", () => { delete S.t.imgs[key]; hidePop(); change(); }]]);
+    showPop(x, y + 12, [["Move & zoom", () => { hidePop(); startCrop(key); }], ["Change photo", upload], ["Remove photo", () => { delete S.t.imgs[key]; if (S.t.crop) delete S.t.crop[key]; hidePop(); change(); }]]);
   }
   file.addEventListener("change", () => {
     const f = file.files[0], key = file._key; if (!f || !key) return;
@@ -316,13 +317,130 @@
       c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
       URL.revokeObjectURL(url);
       (S.t.imgs = S.t.imgs || {})[key] = c.toDataURL("image/jpeg", .82);
+      if (S.t.crop) delete S.t.crop[key];   /* a new photo starts centered */
       change(); madeItTheirs();
+      startCrop(key);   /* straight into moving and zooming it */
     };
     im.onerror = () => { URL.revokeObjectURL(url); toast("That image couldn't be opened. Try a JPG or PNG."); };
     im.src = url;
   });
 
+  /* ---------- moving and zooming a photo inside its box ----------
+     Saved as S.t.crop[key] = [x%, y%, zoom] and drawn by tpRender(), so the
+     download and the published site show the same crop. Drag (mouse or one
+     finger) moves the photo; pinch, the scroll wheel or the slider zooms. */
+  let crop = null;
+  const cropBar = document.createElement("div");
+  cropBar.className = "ed-cropbar"; cropBar.hidden = true; cropBar.setAttribute("role", "toolbar"); cropBar.setAttribute("aria-label", "Move and zoom photo");
+  cropBar.innerHTML = `<span class="ed-crophint">Drag to move · pinch or scroll to zoom</span>
+    <div class="ed-croprow"><button type="button" data-z="-1" aria-label="Zoom out">−</button><input type="range" min="1" max="4" step="0.01" aria-label="Zoom"><button type="button" data-z="1" aria-label="Zoom in">+</button>
+    <button type="button" data-crop="reset">Reset</button><button type="button" data-crop="done" class="go">Done</button></div>`;
+  document.body.appendChild(cropBar);
+  const cropSlider = $("input", cropBar);
+  const cropBox = key => $$("[data-img]", canvas).find(el => el.dataset.img === key);
+
+  function startCrop(key) {
+    stopCrop();
+    const el = cropBox(key), src = S.t.imgs && S.t.imgs[key];
+    if (!el || !src || preview) return;
+    const c = tpCrop(S.t, key);
+    crop = { key, el, x: c[0], y: c[1], z: c[2], iw: 0, ih: 0, pts: new Map(), start: JSON.stringify(c) };
+    const im = new Image(); im.onload = () => { if (crop && crop.key === key) { crop.iw = im.naturalWidth; crop.ih = im.naturalHeight; } }; im.src = src;
+    el.classList.add("ed-cropping"); document.body.classList.add("ed-cropmode");
+    cropSlider.value = crop.z; cropBar.hidden = false;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.addEventListener("pointerdown", cropDown);
+    el.addEventListener("wheel", cropWheel, { passive: false });
+  }
+  /* writes the crop into the box on the page, without redrawing the whole site */
+  function paintCrop() {
+    const { el, x, y, z } = crop;
+    el.style.backgroundPosition = `${x}% ${y}%`;
+    let layer = $(":scope > .tp-zoom", el);
+    if (z > 1 && !layer) { el.insertAdjacentHTML("afterbegin", tpZoom([x, y, z])); el.classList.add("tp-z"); layer = el.firstElementChild; }
+    if (layer) { layer.style.transform = `scale(${z})`; layer.style.transformOrigin = `${x}% ${y}%`; }
+    cropSlider.value = z;
+  }
+  function saveCrop() {
+    if (!crop) return;
+    const v = [Math.round(crop.x * 10) / 10, Math.round(crop.y * 10) / 10, Math.round(crop.z * 100) / 100];
+    if (JSON.stringify(v) === crop.start) return;
+    crop.start = JSON.stringify(v);
+    S.t.crop = Object.assign({}, S.t.crop);
+    if (v[0] === 50 && v[1] === 50 && v[2] === 1) delete S.t.crop[crop.key]; else S.t.crop[crop.key] = v;
+    commit(); madeItTheirs();
+  }
+  function stopCrop() {
+    if (!crop) return;
+    saveCrop();
+    const el = crop.el;
+    el.classList.remove("ed-cropping"); el.removeEventListener("pointerdown", cropDown); el.removeEventListener("wheel", cropWheel);
+    document.body.classList.remove("ed-cropmode"); cropBar.hidden = true; crop = null;
+  }
+  const setZoom = z => { crop.z = Math.min(4, Math.max(1, z)); paintCrop(); };
+  /* moving the pointer by d screen pixels moves the photo by the same amount */
+  function pan(dx, dy) {
+    const el = crop.el, s = el.getBoundingClientRect().width / el.offsetWidth || 1, W = el.offsetWidth, H = el.offsetHeight;
+    if (!crop.iw || !W || !H) return;
+    const k = Math.max(W / crop.iw, H / crop.ih), ox = crop.iw * k - W, oy = crop.ih * k - H;
+    /* how far the photo travels for each 1% of position: the cover overflow, scaled, plus the zoom's own shift */
+    const px = (crop.z * ox + (crop.z - 1) * W) / 100, py = (crop.z * oy + (crop.z - 1) * H) / 100;
+    if (px > .01) crop.x = Math.min(100, Math.max(0, crop.x - dx / s / px));
+    if (py > .01) crop.y = Math.min(100, Math.max(0, crop.y - dy / s / py));
+    paintCrop();
+  }
+  function cropDown(e) {
+    if (!crop || (e.button && e.button !== 0)) return;
+    e.preventDefault();
+    try { crop.el.setPointerCapture(e.pointerId); } catch (err) { /* the pointer already ended */ }
+    crop.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    crop.pinch = null;
+    crop.el.addEventListener("pointermove", cropMove); crop.el.addEventListener("pointerup", cropUp); crop.el.addEventListener("pointercancel", cropUp);
+  }
+  function cropMove(e) {
+    if (!crop || !crop.pts.has(e.pointerId)) return;
+    const prev = crop.pts.get(e.pointerId), now = { x: e.clientX, y: e.clientY };
+    crop.pts.set(e.pointerId, now);
+    if (crop.pts.size >= 2) {
+      const [a, b] = [...crop.pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (!crop.pinch) crop.pinch = { d, z: crop.z };
+      else if (crop.pinch.d > 0) setZoom(crop.pinch.z * d / crop.pinch.d);
+      /* both fingers moving together also moves the photo */
+      pan((now.x - prev.x) / 2, (now.y - prev.y) / 2);
+    } else pan(now.x - prev.x, now.y - prev.y);
+  }
+  function cropUp(e) {
+    if (!crop) return;
+    crop.pts.delete(e.pointerId); crop.pinch = null;
+    if (!crop.pts.size) { crop.el.removeEventListener("pointermove", cropMove); crop.el.removeEventListener("pointerup", cropUp); crop.el.removeEventListener("pointercancel", cropUp); saveCrop(); }
+  }
+  let wheelT;
+  function cropWheel(e) {
+    if (!crop) return;
+    e.preventDefault();
+    setZoom(crop.z * Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .002)));
+    clearTimeout(wheelT); wheelT = setTimeout(saveCrop, 300);
+  }
+  function resetCrop() {
+    crop.x = crop.y = 50; setZoom(1);
+    const layer = $(":scope > .tp-zoom", crop.el);
+    if (layer) { crop.el.removeChild(layer); crop.el.classList.remove("tp-z"); }
+    saveCrop();
+  }
+  cropSlider.addEventListener("input", () => crop && setZoom(+cropSlider.value));
+  cropSlider.addEventListener("change", saveCrop);
+  cropBar.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b || !crop) return;
+    if (b.dataset.z) { setZoom(crop.z + b.dataset.z * .25); saveCrop(); }
+    else if (b.dataset.crop === "reset") resetCrop();
+    else stopCrop();
+  });
+  /* tapping anywhere else, or Escape, finishes */
+  document.addEventListener("pointerdown", e => { if (crop && !crop.el.contains(e.target) && !cropBar.contains(e.target)) stopCrop(); }, true);
+  addEventListener("keydown", e => { if (crop && (e.key === "Escape" || e.key === "Enter")) { e.preventDefault(); stopCrop(); } });
+
   canvas.addEventListener("click", e => {
+    if (crop) { e.preventDefault(); return; }
     const burger = e.target.closest("[data-burger]");
     if (burger) { burger.closest(".tp").classList.toggle("menu-open"); canvas._fit && canvas._fit(); return; }
     if (!preview) {
@@ -396,17 +514,17 @@
   const isPaid = () => { if (!buy) return true; try { return localStorage.getItem(PAID) === "1"; } catch (e) { return false; } };
   const CLOUD = typeof Cloud !== "undefined" && Cloud.on;
   /* a free site that is already online republishes straight from here, as long as its design is a starter one */
-  const freeLive = () => !!(siteRow && siteRow.plan === "free" && siteRow.published_at && siteRow.html);
+  const freeLive = () => !!(siteRow && siteRow.plan === "free" && siteRow.published_at);
   const labelExport = () => { $("#edExport").textContent = CLOUD ? (siteRow && siteRow.plan !== "free" ? (siteRow.plan === "monthly" ? "Publish" : "Save for download") : freeLive() && Free.ok(S.src) ? "Publish" : freeLive() ? "Upgrade to publish" : "Get my site") : isPaid() ? "Download" : "Get my site"; };
   const stripeRef = () => "editor-" + S.src.replace(/[^A-Za-z0-9_-]/g, "_");
   const checkout = (link, plan) => {
     save();
-    location.href = link ? link + (link.includes("?") ? "&" : "?") + "client_reference_id=" + stripeRef() : `contact.html?template=${encodeURIComponent(S.src)}&design=1&plan=${plan}`;
+    location.href = link ? link + (link.includes("?") ? "&" : "?") + "client_reference_id=" + stripeRef() : `contact.html?template=${encodeURIComponent(S.src)}&design=1&plan=${encodeURIComponent(plan)}`;
   };
   $("#edPayX").addEventListener("click", () => payDlg.close());
   payDlg.addEventListener("click", e => { if (e.target === payDlg) payDlg.close(); });
-  $("#edPayGo").addEventListener("click", () => checkout((CONFIG.pay || {}).editorBuy, "Download"));
-  $("#edPayMo").addEventListener("click", () => checkout((CONFIG.pay || {}).editorMonthly, "Hosted"));
+  $("#edPayGo").addEventListener("click", () => checkout((CONFIG.pay || {}).editorBuy, "Own it"));
+  $("#edPayMo").addEventListener("click", () => checkout((CONFIG.pay || {}).editorMonthly, "Website plan"));
   $("#edExport").addEventListener("click", async () => {
     if (CLOUD) {
       /* accounts are on: the dashboard handles plans, publishing and downloads */
@@ -454,7 +572,7 @@
     try {
       clearTimeout(cloudT);
       await Cloud.saveSite(siteId, { design: S, name: S.t.brand.slice(0, 80) || "My site", html, published_at: new Date().toISOString() });
-      if (siteRow.plan === "free") { siteRow.published_at = siteRow.published_at || new Date().toISOString(); siteRow.html = html; labelExport(); }
+      if (siteRow.plan === "free") { siteRow.published_at = siteRow.published_at || new Date().toISOString(); labelExport(); }
       toast(siteRow.plan === "monthly" ? "Published. Your changes are live within a minute." : siteRow.plan === "free" ? "Published free at " + Cloud.address({ slug: siteRow.slug }) + ". Live within a minute." : "Saved. Your download is ready in your dashboard.");
     } catch (e) {
       /* the server turned it down because of a Free plan limit: say why, then show the plans */

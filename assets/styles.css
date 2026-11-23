@@ -15,8 +15,10 @@
   --ease:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;background:var(--bg)}
-body{font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.6;font-size:16.5px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html{scroll-behavior:smooth;background:var(--bg);overflow-x:hidden;overflow-x:clip}
+/* a sheet or menu takes focus itself when it opens (assets/clean.js), so no ring and no jump */
+dialog:focus{outline:none}
+body{font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.6;font-size:16.5px;-webkit-font-smoothing:antialiased}
 a{color:inherit}
 img,svg{display:block}
 button,input,select,textarea{font-family:inherit}
@@ -29,6 +31,8 @@ h1,h2,h3,h4{color:var(--white);letter-spacing:-.03em;line-height:1.05;font-weigh
 h1 .s,h2 .s{font-family:var(--serif);font-weight:400;font-style:italic;letter-spacing:-.01em}
 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .w{background:var(--warm);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* gradient words: the gradient only paints inside the word's box, so italic tails (the g in great, y, f, j) and slanted edges were cut off. Extra padding widens the painted area; the matching negative margin keeps the spacing the same. */
+.g,.w{padding:.06em .16em .24em .12em;margin:0 -.16em 0 -.12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .skip{position:absolute;left:-999px;top:8px;z-index:100;background:#fff;color:#000;padding:8px 14px;border-radius:8px}
 .skip:focus{left:8px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
@@ -61,6 +65,9 @@ header.scrolled{background:rgba(5,8,12,.78);backdrop-filter:saturate(1.5) blur(1
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--white);font-weight:700;letter-spacing:-.02em}
 .brand-logo{width:30px;height:32px}
 .brand-name span{color:var(--muted);font-weight:500}
+/* the name stays on one line; the smallest phones show "Seaside Haven" in the top bar */
+header .brand-name{white-space:nowrap}
+@media(max-width:360px){header .brand-name>span{display:none}}
 .links{display:flex;gap:4px}
 .links a{text-decoration:none;font-size:.93rem;font-weight:500;color:var(--text);padding:8px 14px;border-radius:999px;transition:color .2s,background .2s}
 .links a:hover{color:var(--white);background:var(--panel-2)}
@@ -96,7 +103,7 @@ header.scrolled{background:rgba(5,8,12,.78);backdrop-filter:saturate(1.5) blur(1
 .stack .sc:nth-child(1){top:0;left:0;transform:rotateY(14deg) rotateX(6deg) translateZ(-60px)}
 .stack .sc:nth-child(2){top:90px;right:0;transform:rotateY(-12deg) rotateX(4deg) translateZ(0)}
 .stack .sc:nth-child(3){bottom:0;left:9%;transform:rotateY(6deg) rotateX(-4deg) translateZ(60px)}
-.stack .tag{position:absolute;z-index:3;font-size:.8rem;font-weight:600;padding:8px 14px;border-radius:999px;background:rgba(5,8,12,.8);backdrop-filter:blur(8px);color:var(--white);box-shadow:inset 0 0 0 1px var(--line-2);display:flex;align-items:center;gap:8px;animation:bob 5s ease-in-out infinite}
+.stack .tag{position:absolute;z-index:3;font-size:.8rem;font-weight:600;padding:8px 14px;border-radius:999px;background:rgba(5,8,12,.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--white);box-shadow:inset 0 0 0 1px var(--line-2);display:flex;align-items:center;gap:8px;animation:bob 5s ease-in-out infinite}
 .stack .tag i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
 .stack .tag.t1{top:40px;right:6%}.stack .tag.t2{bottom:70px;right:-2%;animation-delay:-2s}.stack .tag.t3{top:46%;left:-4%;animation-delay:-3.5s}
 @keyframes bob{50%{transform:translateY(-10px)}}
@@ -171,7 +178,7 @@ html.no-js .rv{opacity:1;transform:none}
 /* ---------- preview modal ---------- */
 dialog.pv{border:0;padding:0;margin:auto;width:min(1240px,96vw);height:min(900px,94vh);max-width:none;max-height:none;border-radius:20px;background:var(--bg-2);color:var(--text);box-shadow:0 0 0 1px var(--line-2),0 50px 120px rgba(0,0,0,.8);overflow:hidden}
 dialog.pv[open]{display:flex;flex-direction:column}
-dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
+dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .pv-bar{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .pv-bar h3{font-size:1.1rem}
 .pv-bar small{color:var(--muted)}
@@ -188,6 +195,14 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .pv-device.phone{border-radius:34px;border:10px solid #111}
 .pv-device .scale{transform-origin:0 0}
 @media(max-width:640px){.pv-bar .pals{order:5}.pv-stage{padding:12px}}
+/* template preview on phones: full screen below the clock, close button in the top corner, buttons always fit */
+@media(max-width:640px){
+  dialog.pv{width:100%;height:100dvh;max-height:100dvh;margin:0;border-radius:0;box-shadow:none}
+  .pv-bar{position:relative;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 64px 12px max(16px,env(safe-area-inset-left))}
+  .pv-bar #pvClose{position:absolute;top:calc(10px + env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right))}
+  .pv-x{margin-left:0;width:calc(100% + 48px);flex-wrap:wrap}
+  .pv-x .btn{flex:1 1 auto;min-width:0;white-space:normal;text-align:center;line-height:1.2;padding:8px 14px}
+}
 
 /* ---------- lab (brand switcher) ---------- */
 .blab{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start}
@@ -210,7 +225,7 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .cell.w3{grid-column:span 3}.cell.w4{grid-column:span 4}
 .cell h3{font-size:1.25rem}
 .cell .vis{margin-top:auto}
-@media(max-width:940px){.cell,.cell.w3,.cell.w4{grid-column:span 6}}
+@media(max-width:940px){.cell,.cell.w3,.cell.w4{grid-column:span 6;min-height:0}.cell .vis{margin-top:6px}}
 .pills{display:flex;flex-wrap:wrap;gap:8px}
 .pills span{font-size:.82rem;padding:6px 12px;border-radius:999px;background:var(--panel-2);color:var(--white)}
 
@@ -226,19 +241,26 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .plan .pop{position:absolute;top:24px;right:22px;font-size:.74rem;font-weight:700;padding:5px 12px;border-radius:999px;background:var(--grad);color:#03141A;letter-spacing:.02em}
 .plan.warm .pop{background:var(--warm);color:#2A0F05}
 .plan h3{font-size:1.35rem}
+/* narrow plan cards (four across on laptops, small phones): the badge sits on the card's top edge instead of on top of the title */
+.plan{container-type:inline-size}
+.plan.spot{overflow:visible}.plan.spot::before{border-radius:inherit}
+@container (max-width:340px){.plan .pop{top:-11px;left:22px;right:auto}}
 .plan > p{font-size:.95rem;min-height:3em}
 .price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .price b{font-size:2.8rem;color:var(--white);letter-spacing:-.05em;line-height:1}
 .price span{color:var(--muted);font-size:.9rem}
 .price s{color:var(--muted);font-size:1.05rem}
 .feat{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:.94rem;margin:6px 0 10px}
-.feat li{display:flex;gap:10px;align-items:flex-start}
-.feat li::before{content:"";flex:none;width:18px;height:18px;margin-top:3px;border-radius:50%;background:rgba(74,222,155,.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234ADE9B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/11px no-repeat}
+.feat li{position:relative;padding-left:28px;overflow-wrap:break-word}
+.feat li::before{content:"";position:absolute;left:0;top:3px;width:18px;height:18px;border-radius:50%;background:rgba(74,222,155,.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234ADE9B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/11px no-repeat}
 .plan .btn{margin-top:auto}
-.meta-line{font-size:.85rem;color:var(--muted)}
+.meta-line,.page-hero .meta-line{font-size:.85rem;color:var(--muted)}
 .ptabs{display:inline-flex;gap:4px;padding:5px;border-radius:999px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--line);margin-bottom:34px;max-width:100%;overflow-x:auto}
 .ptabs button{flex:none;min-height:42px;padding:0 18px;border-radius:999px;border:0;background:transparent;color:var(--text);font-weight:600;cursor:pointer}
 .ptabs button[aria-selected="true"]{background:var(--white);color:#05080C}
+/* phones: all four pricing tabs visible at once (two rows) instead of two hidden off the edge */
+.ptabs button small,.ptabs button small i{font:inherit}
+@media(max-width:620px){.ptabs{display:grid;grid-template-columns:1fr 1fr;width:100%;border-radius:22px;overflow:visible}.ptabs button{border-radius:17px;padding:6px 8px;font-size:.88rem;line-height:1.2;white-space:nowrap}.ptabs button small{display:block;font-size:.72rem;font-weight:500;opacity:.7}.ptabs button small i{display:none}}
 .ppanel[hidden]{display:none}
 .compare{width:100%;border-collapse:collapse;font-size:.95rem}
 .compare-wrap{overflow-x:auto;border-radius:var(--r-lg);box-shadow:inset 0 0 0 1px var(--line);background:var(--panel)}
@@ -295,6 +317,8 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 @media(max-width:900px){.demo-grid{grid-template-columns:1fr}}
 .demo{background:var(--panel);border-radius:var(--r-lg);box-shadow:inset 0 0 0 1px var(--line);padding:28px;display:flex;flex-direction:column;gap:14px;min-width:0}
 .demo h3{font-size:1.3rem}
+/* the chat demo's field shrinks so Send always fits beside it on small phones */
+#chatForm input{min-width:0}#chatForm .btn{flex:none}
 .demo .what{font-size:.85rem;color:var(--muted)}
 .chat{display:flex;flex-direction:column;gap:10px;height:300px;overflow-y:auto;padding:16px;border-radius:var(--r-md);background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px var(--line);scroll-behavior:smooth}
 .msg{max-width:82%;padding:10px 14px;border-radius:16px;font-size:.92rem;line-height:1.45;animation:pop .3s var(--ease)}
@@ -308,7 +332,8 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .quick button:hover{background:rgba(46,197,224,.2)}
 .days,.slots{display:grid;gap:8px}
 .days{grid-template-columns:repeat(5,1fr)}
-.slots{grid-template-columns:repeat(3,1fr)}
+.slots{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:360px){.days,.slots{gap:6px}.days button,.slots button{font-size:.78rem;padding:0 2px}}
 .days button,.slots button{min-height:48px;border-radius:12px;border:0;background:var(--panel-2);color:var(--text);cursor:pointer;font-size:.85rem;transition:all .2s}
 .days button b{display:block;color:var(--white);font-size:1.1rem}
 .days button[aria-pressed="true"],.slots button[aria-pressed="true"]{background:var(--sea);color:#03141A}
@@ -330,9 +355,13 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .cart-bar b{color:var(--white)}
 .cart-n{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:999px;background:var(--coral);color:#fff;font-size:.8rem;font-weight:700;margin-left:6px;transition:transform .3s var(--ease)}
 .cart-n.bump{transform:scale(1.4)}
+/* small phones: cart label, total and Checkout keep their own space; messages stay one tidy pill */
+.cart-bar{gap:10px}.cart-bar>span{display:flex;align-items:center;white-space:nowrap}.cart-bar b{margin-left:auto;white-space:nowrap}.cart-bar .btn{flex:none}
+@media(max-width:360px){.cart-bar{padding:10px 10px 10px 14px}}
+.toast{width:max-content;max-width:calc(100vw - 32px);text-align:center;line-height:1.35}
 @media(max-width:520px){.shop{grid-template-columns:1fr 1fr}.shop .prod:nth-child(3){display:none}}
 .fx{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media(max-width:700px){.fx{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.fx{grid-template-columns:1fr 1fr}.fx > div:last-child:nth-child(odd){grid-column:span 2}.fx .btn{padding-left:16px;padding-right:16px;max-width:100%;white-space:normal}}
 .fx > div{min-height:150px;border-radius:16px;background:rgba(0,0,0,.3);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px;text-align:center;font-size:.8rem;color:var(--muted);position:relative;overflow:hidden}
 .magnet{transition:transform .2s}
 .tilt{width:110px;height:72px;border-radius:12px;background:var(--grad);transform-style:preserve-3d;transition:transform .15s;box-shadow:0 14px 30px -10px rgba(46,197,224,.6);display:grid;place-items:center;color:#03141A;font-weight:700}
@@ -346,7 +375,10 @@ dialog.pv::backdrop{background:rgba(2,4,8,.75);backdrop-filter:blur(6px)}
 .scramble{font-family:ui-monospace,monospace;font-size:1rem;color:var(--white);font-weight:600}
 .count{font-size:2rem;color:var(--white);font-weight:700;letter-spacing:-.04em}
 .reveal-img{width:100%;height:80px;border-radius:12px;background:linear-gradient(135deg,#FF7A59,#FFC56E);clip-path:circle(12% at 50% 50%);transition:clip-path .6s var(--ease);display:grid;place-items:center;color:#2A0F05;font-weight:700}
-.fx > div:hover .reveal-img{clip-path:circle(75% at 50% 50%)}
+.reveal-img{font-size:0;transition:clip-path .6s var(--ease),font-size 0s .3s}
+.fx > div:hover .reveal-img{clip-path:circle(75% at 50% 50%);font-size:.85rem;transition-delay:0s}
+/* phones have no hover: reveal it once the tile scrolls into view */
+@media(hover:none),(pointer:coarse){.fx > div.in .reveal-img{clip-path:circle(75% at 50% 50%);font-size:.85rem;transition-delay:.4s}}
 .ld{display:flex;gap:6px}.ld i{width:10px;height:10px;border-radius:50%;background:var(--sea);animation:ld 1s ease-in-out infinite}.ld i:nth-child(2){animation-delay:.15s}.ld i:nth-child(3){animation-delay:.3s}
 @keyframes ld{50%{transform:translateY(-10px);opacity:.5}}
 
@@ -432,7 +464,7 @@ footer ul a{text-decoration:none}footer ul a:hover{color:var(--white)}
 .dd-btn svg{transition:transform .25s}
 .dd-btn:hover,.dd-btn.on,.dd.open .dd-btn{color:var(--white);background:var(--panel-2)}
 .dd.open .dd-btn svg{transform:rotate(180deg)}
-.dd-panel{position:absolute;top:calc(100% + 10px);left:50%;width:360px;padding:8px;border-radius:18px;background:rgba(10,16,22,.97);backdrop-filter:blur(16px);box-shadow:0 0 0 1px var(--line-2),0 30px 70px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:2px;opacity:0;visibility:hidden;transform:translate(-50%,-6px);transition:opacity .2s,transform .2s,visibility .2s}
+.dd-panel{position:absolute;top:calc(100% + 10px);left:50%;width:360px;padding:8px;border-radius:18px;background:rgba(10,16,22,.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 0 0 1px var(--line-2),0 30px 70px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:2px;opacity:0;visibility:hidden;transform:translate(-50%,-6px);transition:opacity .2s,transform .2s,visibility .2s}
 .dd-panel::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px}
 .dd.open .dd-panel{opacity:1;visibility:visible;transform:translate(-50%,0)}
 .dd-panel a{display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;text-decoration:none;transition:background .2s}
@@ -466,6 +498,9 @@ main{animation:pagein .5s var(--ease)}
 .design-note b{color:var(--white)}
 .design-note a{color:var(--aqua)}
 .design-note .btn{margin-top:10px;display:flex}
+
+/* anything marked hidden stays hidden, even when a class gives it display:flex or grid */
+[hidden]{display:none !important}
 
 /* ---------- phones and the iPhone app ---------- */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -503,8 +538,8 @@ html.mm-on .to-top{opacity:0;visibility:hidden}
 .mm-main:active{background:#DCE3E6}
 .mm-alt{display:block;text-align:center;padding:10px 0 2px;font-size:.88rem;color:var(--aqua);text-decoration:none;font-weight:500}
 .mm-h{margin:22px 6px 10px;font-size:.72rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-.mm-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.mm-tile{display:flex;flex-direction:column;gap:2px;padding:14px;border-radius:16px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--line);text-decoration:none;transition:background .2s}
+.mm-tiles{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.mm-tile{display:flex;flex-direction:column;gap:2px;min-width:0;padding:14px;border-radius:16px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--line);text-decoration:none;transition:background .2s}
 .mm-tile .mm-i{margin-bottom:10px}
 .mm-tile b{color:var(--white);font-weight:600;font-size:.95rem}
 .mm-tile small{color:var(--muted);font-size:.8rem}
@@ -530,6 +565,8 @@ html.mm-on .to-top{opacity:0;visibility:hidden}
 .mm-tile .mm-i{grid-row:1/3;margin:0;width:36px;height:36px}
 .mm-tile b{font-size:.9rem;line-height:1.2}
 .mm-tile small{font-size:.76rem;line-height:1.2}
+/* the smallest phones: icon above the words, so names like "Templates" never break */
+@media(max-width:360px){.mm-sheet{width:94vw}.mm-body{padding-left:12px;padding-right:12px}.mm-tiles{gap:8px}.mm-tile{grid-template-columns:1fr;row-gap:2px}.mm-tile .mm-i{grid-row:auto;margin-bottom:8px}}
 .mm-h{margin:18px 6px 8px}
 .mm-row{padding:6px 10px}
 .mm-row .mm-i{width:34px;height:34px}
